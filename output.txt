@@ -1,0 +1,212 @@
+===== ./docker-compose.yml =====
+services:
+  db:
+    image: postgres:latest
+    container_name: IsWorking_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5440:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - IsWorking_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: IsWorking_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5051:80"
+    depends_on:
+      - db
+    networks:
+      - IsWorking_net
+
+networks:
+  IsWorking_net:
+-----------------------
+===== ./DOCS/diagramas/flujo.md =====
+Roles y flujos
+Empleado
+
+Login → ver su historial de fichajes del mes
+Botón de fichar (entrada / pausa / vuelta / salida)
+La geolocalización se captura automáticamente al pulsar, sin rastreo continuo
+Si no hay internet → se guarda en localStorage y se sincroniza al reconectar
+
+Administrador
+
+Ver todos los empleados y sus registros
+Filtrar por empleado, fecha o tipo de fichaje
+Ver ubicación de cada fichaje en un mapa (Leaflet.js, gratuito)
+Exportar registros a CSV
+Gestionar empleados (crear, desactivar)
+-----------------------
+===== ./init.sql =====
+CREATE TABLE IF NOT EXISTS public.users
+(
+    id_user serial NOT NULL,
+    username character varying(50) NOT NULL,
+    password character varying(300) NOT NULL,
+    email character varying(50) NOT NULL,
+    PRIMARY KEY (id_user)
+);
+-----------------------
+===== ./package.json =====
+{
+  "name": "isworking",
+  "version": "1.0.0",
+  "description": "Proyecto Fullstack – Plataforma de Gestión de Horarios Laborales",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "nodemon src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0",
+    "pg-hstore": "2.3.4",
+    "sequelize": "^6.37.8",
+    "pug": "^3.0.4"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
+-----------------------
+===== ./README.md =====
+# WorkTrace 🕐
+
+Control de jornada laboral con geolocalización para equipos.
+
+> 🚧 Proyecto en desarrollo — actualmente en fase de configuración inicial.
+
+---
+
+## ¿Qué es WorkTrace?
+
+Plataforma web que permite a los empleados registrar su jornada laboral (entrada, pausas y salida) capturando automáticamente su ubicación GPS en el momento del fichaje. Los administradores pueden consultar todos los registros y visualizarlos en un mapa.
+
+---
+
+## Tech Stack
+
+- **Frontend:** Next.js 14, React, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Base de datos:** PostgreSQL
+- **Infraestructura:** Docker, Docker Compose
+- **CI/CD:** GitHub Actions
+
+---
+
+## Estado del proyecto
+
+| Módulo | Estado |
+|--------|--------|
+| Configuración inicial / Docker | 🔄 En progreso |
+| Autenticación (JWT) | ⏳ Pendiente |
+| API de fichajes | ⏳ Pendiente |
+| Panel del empleado | ⏳ Pendiente |
+| Panel de administración | ⏳ Pendiente |
+| Modo offline | ⏳ Pendiente |
+| Documentación API (Swagger) | ⏳ Pendiente |
+
+---
+
+## Equipo
+
+| Nombre | Rol | GitHub |
+|--------|-----|--------|
+| — | Auth & Users (Backend) | — |
+| — | Records API (Backend) | — |
+| — | Infra & DevOps | — |
+| — | Frontend | — |
+
+---
+
+## Instalación
+
+> Las instrucciones de instalación se añadirán una vez esté configurado el entorno base.
+
+```bash
+# Próximamente
+git clone https://github.com/tu-org/worktrace.git
+```
+
+---
+
+## Licencia
+
+MIT
+-----------------------
+===== ./src/config/db.js =====
+import { Sequelize } from 'sequelize'
+import dotenv from 'dotenv'
+
+dotenv.config()
+console.log('PUERTO DB:', process.env.DB_PORT)
+
+/*
+   Instancia de Sequelize configurada con las variables de entorno.
+   Utiliza PostgreSQL como dialecto y desactiva el logging de queries.
+*/
+const sequelize = new Sequelize(
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
+    {
+        host: process.env.DB_HOST,
+        port: process.env.DB_PORT || 5440,
+        dialect: 'postgres',
+        logging: false
+    }
+)
+
+export default sequelize
+
+-----------------------
+===== ./src/controllers/Controller.js =====
+//aqui iran los controladores de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
+-----------------------
+===== ./src/index.js =====
+import express from "express";
+
+const app = express();
+
+app.get("/", (req, res) => {
+  res.send("Servidor funcionando");
+});
+
+app.listen(3000, () => {
+  console.log("Servidor en puerto 3000");
+});
+-----------------------
+===== ./src/middlewares/Middleware.js =====
+//aqui iran los middlewares de la aplicacion, es decir, las funciones que se encargaran de manejar las peticiones y respuestas de la aplicacion, asi como tambien de manejar los errores y las validaciones de las rutas de la aplicacion
+-----------------------
+===== ./src/models/Models,js =====
+//aqui iran los models de la aplicacion
+-----------------------
+===== ./src/routes/Routes.js =====
+//aqui iran las rutas de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
+-----------------------
+===== ./src/services/Services.js =====
+//aqui iran los servicios de la aplicacion, es decir, las funciones que se encargaran de manejar la logica de negocio de la aplicacion, asi como tambien de manejar las consultas a la base de datos y las operaciones CRUD de la aplicacion
+-----------------------

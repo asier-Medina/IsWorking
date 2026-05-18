@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: IsWorking_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5440:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - IsWorking_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: IsWorking_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5051:80"
+    depends_on:
+      - db
+    networks:
+      - IsWorking_net
+
+networks:
+  IsWorking_net:
