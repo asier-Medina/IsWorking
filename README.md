@@ -1,4 +1,4 @@
-# WorkTrace 🕐
+# IsWorking🕐
 
 Control de jornada laboral con geolocalización para equipos.
 
@@ -6,7 +6,7 @@ Control de jornada laboral con geolocalización para equipos.
 
 ---
 
-## ¿Qué es WorkTrace?
+## ¿Qué es IsWorking?
 
 Plataforma web que permite a los empleados registrar su jornada laboral (entrada, pausas y salida) capturando automáticamente su ubicación GPS en el momento del fichaje. Los administradores pueden consultar todos los registros y visualizarlos en un mapa.
 
