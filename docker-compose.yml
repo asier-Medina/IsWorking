@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
   db:
     image: postgres:latest
@@ -11,6 +13,12 @@ services:
       - "5440:5432"
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     networks:
       - IsWorking_net
 
@@ -24,9 +32,38 @@ services:
     ports:
       - "5051:80"
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - IsWorking_net
 
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: IsWorking_app
+    restart: always
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/usr/src/app/src
+    networks:
+      - IsWorking_net
+
+volumes:
+  postgres-data:
+
 networks:
   IsWorking_net:
+    driver: bridge
