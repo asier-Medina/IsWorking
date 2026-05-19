@@ -1,0 +1,1 @@
+//aqui irian los modelos sequelize, pero como no se ha definido ningun modelo, se deja vacio por ahora

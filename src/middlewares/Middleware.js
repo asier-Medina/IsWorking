@@ -1,1 +1,0 @@
-//aqui iran los middlewares de la aplicacion, es decir, las funciones que se encargaran de manejar las peticiones y respuestas de la aplicacion, asi como tambien de manejar los errores y las validaciones de las rutas de la aplicacion

@@ -1,34 +1,28 @@
-import express from "express";
-import dotenv from "dotenv";
+import express from 'express'
+import dotenv from 'dotenv'
+import sequelize from './config/postgres.js'
+import connectMongo from './config/mongo.js'
 
-import sequelize from "./config/postgres.js";
-import connectMongo from "./config/mongo.js";
+dotenv.config()
+const app = express()
+app.use(express.json())
 
-dotenv.config();
+// Aquí cada persona importará sus rutas:
+// import companiesRouter from './routes/companies.routes.js'
+// app.use('/api/companies', companiesRouter)
 
-const app = express();
+app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
-app.use(express.json());
+const start = async () => {
+  await sequelize.authenticate()
+  console.log('PostgreSQL conectado')
 
-app.get("/", (req, res) => {
-  res.send("IsWorking API funcionando");
-});
+  await connectMongo()
+  console.log('MongoDB conectado')
 
-const startServer = async () => {
-  try {
+  app.listen(process.env.PORT || 3000, () =>
+    console.log(`Servidor en puerto ${process.env.PORT || 3000}`)
+  )
+}
 
-    await sequelize.authenticate();
-    console.log("PostgreSQL conectado");
-
-    await connectMongo();
-
-    app.listen(process.env.PORT || 3000, () => {
-      console.log(`Servidor en puerto ${process.env.PORT || 3000}`);
-    });
-
-  } catch (error) {
-    console.error(error);
-  }
-};
-
-startServer();
+start()
