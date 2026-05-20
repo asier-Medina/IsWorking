@@ -2,15 +2,16 @@ import express from 'express'
 import dotenv from 'dotenv'
 import sequelize from './config/postgres.js'
 import connectMongo from './config/mongo.js'
+import cookieParser from 'cookie-parser'
+import authRouter from './routes/auth.routes.js'
+const app = express()
+
 
 dotenv.config()
-const app = express()
 app.use(express.json())
+app.use(cookieParser())
 
-// Aquí cada persona importará sus rutas:
-// import companiesRouter from './routes/companies.routes.js'
-// app.use('/api/companies', companiesRouter)
-
+app.use('/api/auth', authRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
 const start = async () => {
