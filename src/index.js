@@ -4,6 +4,7 @@ import sequelize from './config/postgres.js'
 import connectMongo from './config/mongo.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.routes.js'
+import recordsRoutes from './routes/records.routes.js'
 const app = express()
 
 
@@ -12,6 +13,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth', authRouter)
+app.use('/api/records', recordsRoutes)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
 const start = async () => {
