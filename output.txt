@@ -53,6 +53,8 @@ services:
       MONGO_URI: mongodb://mongo:27017/isworking
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       PORT: 3000
     ports:
       - "3000:3000"
@@ -3018,9 +3020,6 @@ export const deleteCompanyHandler = async (req, res) => {
   }
 }
 -----------------------
-===== ./src/controllers/Controller.js =====
-//aqui iran los controladores de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
------------------------
 ===== ./src/controllers/records.controller.js =====
 import recordsService from '../services/records.service.js'
 
@@ -3080,6 +3079,85 @@ const remove = async (req, res, next) => {
 }
 
 export default { getAll, getById, create, update, remove }
+-----------------------
+===== ./src/controllers/schedules.controller.js =====
+import {
+  getSchedulesService,
+  assignShiftService,
+  updateScheduleStatusService
+} from '../services/schedules.service.js';
+
+export const getSchedules = async (req, res) => {
+  try {
+    const schedules = await getSchedulesService(req.query);
+    res.status(200).json(schedules);
+  } catch (error) {
+    console.error('getSchedules error:', error);
+    res.status(500).json({ error: 'Error al obtener los horarios' });
+  }
+};
+
+export const assignShift = async (req, res) => {
+  try {
+    const newSchedule = await assignShiftService(req.body);
+    res.status(201).json(newSchedule);
+  } catch (error) {
+    console.error('assignShift error:', error);
+    res.status(400).json({ error: 'Error al asignar el turno o ya tiene un turno ese día' });
+  }
+};
+
+export const updateScheduleStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const schedule = await updateScheduleStatusService(id, status);
+    if (!schedule) return res.status(404).json({ error: 'Horario no encontrado' });
+
+    res.status(200).json(schedule);
+  } catch (error) {
+    console.error('updateScheduleStatus error:', error);
+    res.status(400).json({ error: 'Error al cambiar el estado del horario' });
+  }
+};
+-----------------------
+===== ./src/controllers/shifts.controller.js =====
+import ShiftTemplate from '../models/postgres/ShiftTemplate.js';
+
+export const getShiftTemplates = async (req, res) => {
+  try {
+    const templates = await ShiftTemplate.findAll({
+      order: [['id', 'ASC']]
+    });
+    res.status(200).json(templates);
+  } catch (error) {
+    console.error('getShiftTemplates error:', error);
+    res.status(500).json({ error: 'Error al obtener las plantillas' });
+  }
+};
+
+export const createShiftTemplate = async (req, res) => {
+  try {
+    const { company_id, name, type, start_time, end_time, break_start, break_end, has_break } = req.body;
+
+    const newTemplate = await ShiftTemplate.create({
+      company_id,
+      name,
+      type,
+      start_time,
+      end_time,
+      break_start,
+      break_end,
+      has_break
+    });
+
+    res.status(201).json(newTemplate);
+  } catch (error) {
+    console.error('createShiftTemplate error:', error);
+    res.status(400).json({ error: 'Error al crear la plantilla' });
+  }
+};
 -----------------------
 ===== ./src/controllers/user.controller.js =====
 import * as UserService from '../services/user.service.js'
@@ -3163,9 +3241,12 @@ import connectMongo from './config/mongo.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.routes.js'
 import companyRouter from './routes/company.routes.js'
-import setupAssociations  from './models/postgres/associations.js'
+import { setupAssociations } from './models/postgres/associations.js'
 import { notFound, errorHandler } from './middlewares/errorHandler.js'
 import userRouter from './routes/user.routes.js'
+import recordsRouter from './routes/records.routes.js'
+import {scheduleRouter} from './routes/schedules.routes.js'
+import {shiftTemplateRouter} from './routes/shiftTemplate.routes.js'
 const app = express()
 setupAssociations()
 
@@ -3177,8 +3258,9 @@ app.use('/api/auth', authRouter)
 app.use('/api/companies', companyRouter)
 app.use('/api/users', userRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
-
-
+app.use('/api/records', recordsRouter)
+app.use('/api/schedules', scheduleRouter)
+app.use('/api/shift-templates', shiftTemplateRouter)
 const start = async () => {
   await sequelize.authenticate()
   console.log('PostgreSQL conectado')
@@ -3271,8 +3353,6 @@ export default mongoose.model('LogAuth', logAuthSchema)
 import Company from './Company.js'
 import User from './User.js'
 
-
-
 export const setupAssociations = () => {
   // Company -> Users
   Company.hasMany(User, {
@@ -3286,7 +3366,6 @@ export const setupAssociations = () => {
     as: 'company'
   })
 
-  /*
   // Company -> ShiftTemplates
   Company.hasMany(ShiftTemplate, {
     foreignKey: 'company_id',
@@ -3355,7 +3434,7 @@ export const setupAssociations = () => {
     foreignKey: 'schedule_id',
     as: 'schedule'
   })
-  */
+
 }
 -----------------------
 ===== ./src/models/postgres/Company.js =====
@@ -3381,6 +3460,52 @@ export default Company;
 -----------------------
 ===== ./src/models/postgres/postgres.js =====
 //aqui irian los modelos sequelize, pero como no se ha definido ningun modelo, se deja vacio por ahora
+-----------------------
+===== ./src/models/postgres/Schedule.js =====
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/postgres.js';
+
+const Schedule = sequelize.define('Schedule', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  user_id: { type: DataTypes.INTEGER, allowNull: false },
+  shift_template_id: { type: DataTypes.INTEGER, allowNull: true },
+  work_date: { type: DataTypes.DATEONLY, allowNull: false },
+  status: { type: DataTypes.STRING(20), defaultValue: 'assigned' },
+  created_by: { type: DataTypes.INTEGER, allowNull: true },
+  created_at: { type: DataTypes.DATE, defaultValue: DataTypes.NOW }
+}, {
+  tableName: 'schedules',
+  timestamps: false
+});
+
+export default Schedule;
+-----------------------
+===== ./src/models/postgres/ShiftTemplate.js =====
+import { DataTypes } from 'sequelize';
+import sequelize from '../../config/postgres.js';
+
+const ShiftTemplate = sequelize.define('ShiftTemplate', {
+  id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+  company_id: { type: DataTypes.INTEGER, allowNull: false },
+  name: { type: DataTypes.STRING(50), allowNull: false },
+  type: {
+    type: DataTypes.STRING(20),
+    allowNull: false,
+    validate: {
+      isIn: [['morning', 'afternoon', 'split']]
+    }
+  },
+  start_time: { type: DataTypes.TIME, allowNull: false },
+  end_time: { type: DataTypes.TIME, allowNull: false },
+  break_start: { type: DataTypes.TIME, allowNull: true },
+  break_end: { type: DataTypes.TIME, allowNull: true },
+  has_break: { type: DataTypes.BOOLEAN, defaultValue: false }
+}, {
+  tableName: 'shift_templates',
+  timestamps: false
+});
+
+export default ShiftTemplate;
 -----------------------
 ===== ./src/models/postgres/TimeRecord.js =====
 import { DataTypes } from 'sequelize'
@@ -3524,6 +3649,52 @@ export default router
 -----------------------
 ===== ./src/routes/Routes.js =====
 //aqui iran las rutas de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
+
+import { Router } from 'express';
+import {
+  getSchedules,
+  assignShift,
+  updateScheduleStatus
+} from '../controllers/schedules.js';
+
+const router = Router();
+
+router.get('/', getSchedules);
+router.post('/', assignShift);
+router.patch('/:id', updateScheduleStatus);
+
+export default router;
+-----------------------
+===== ./src/routes/schedules.routes.js =====
+import { Router } from 'express';
+import {
+  getSchedules,
+  assignShift,
+  updateScheduleStatus
+} from '../controllers/schedules.controller.js';
+
+const router = Router();
+
+router.get('/', getSchedules);
+router.post('/', assignShift);
+router.patch('/:id/status', updateScheduleStatus);
+
+export default router;
+-----------------------
+===== ./src/routes/shifts.routes.js =====
+// routes/shifts.routes.js
+import { Router } from 'express';
+import {
+  getShiftTemplates,
+  createShiftTemplate
+} from '../controllers/shifts.controller.js';
+
+const router = Router();
+
+router.get('/', getShiftTemplates);
+router.post('/', createShiftTemplate);
+
+export default router;
 -----------------------
 ===== ./src/routes/user.routes.js =====
 import { Router } from "express";
@@ -3595,11 +3766,15 @@ export const register = async ({ name, email, password, company_id, role = 'empl
 // ── Login ─────────────────────────────────────────────────
 
 export const login = async ({ email, password, ip, userAgent }) => {
-
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
+console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
+console.log('JWT_REFRESH_EXPIRES_IN:', process.env.JWT_REFRESH_EXPIRES_IN);
   const user = await User.findOne({ where: { email } })
-
+  console.log("he llegado hasta aqui 1")
   // Usuario no existe o contraseña incorrecta — mismo mensaje por seguridad
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+        console.log("he llegado hasta aqui 2 condicional no se")
     await LogAuth.create({
       user_id: user?.id || 0,
       email,
@@ -3609,11 +3784,12 @@ export const login = async ({ email, password, ip, userAgent }) => {
       success: false,
       reason: !user ? 'user_not_found' : 'wrong_password'
     })
+
     throw new Error('Credenciales incorrectas')
   }
-
+ console.log("he llegado hasta aqui 2")
   if (!user.active) throw new Error('Usuario desactivado')
-
+ console.log("he llegado hasta aqui 3 usuario activo no hay problema")
   const accessToken  = generateAccessToken(user)
   const refreshToken = generateRefreshToken(user)
 
@@ -3625,6 +3801,8 @@ export const login = async ({ email, password, ip, userAgent }) => {
     user_agent: userAgent,
     success:    true
   })
+
+ console.log("he llegado hasta aqui 4 salgo de auth create");
 
   return {
     accessToken,
@@ -3663,6 +3841,7 @@ export const logout = async (userId, email) => {
     success: true
   })
 }
+
 
 -----------------------
 ===== ./src/services/company.service.js =====
@@ -3802,8 +3981,75 @@ const remove = async (id) => {
 
 export default { getAll, getById, create, update, remove }
 -----------------------
+===== ./src/services/schedules.service.js =====
+import { Op } from 'sequelize';
+import Schedule from '../models/postgres/Schedule.js';
+
+export const getSchedulesService = async ({ userId, startDate, endDate }) => {
+  const where = {};
+
+  if (userId) where.user_id = userId;
+
+  if (startDate && endDate) {
+    where.work_date = {
+      [Op.between]: [startDate, endDate]
+    };
+  }
+
+  return Schedule.findAll({
+    where,
+    order: [['work_date', 'ASC']]
+  });
+};
+
+export const assignShiftService = async ({ user_id, shift_template_id, work_date, created_by }) => {
+  return Schedule.create({
+    user_id,
+    shift_template_id,
+    work_date,
+    status: 'assigned',
+    created_by
+  });
+};
+
+export const updateScheduleStatusService = async (id, status) => {
+  const schedule = await Schedule.findByPk(id);
+  if (!schedule) return null;
+
+  await schedule.update({ status });
+  return schedule;
+};
+-----------------------
 ===== ./src/services/Services.js =====
 //aqui iran los servicios de la aplicacion, es decir, las funciones que se encargaran de manejar la logica de negocio de la aplicacion, asi como tambien de manejar las consultas a la base de datos y las operaciones CRUD de la aplicacion
+
+
+-----------------------
+===== ./src/services/shifts.service.js =====
+import {
+  getShiftTemplatesService,
+  createShiftTemplateService
+} from '../services/shifts.service.js';
+
+export const getShiftTemplates = async (req, res) => {
+  try {
+    const templates = await getShiftTemplatesService();
+    res.status(200).json(templates);
+  } catch (error) {
+    console.error('getShiftTemplates error:', error);
+    res.status(500).json({ error: 'Error al obtener las plantillas' });
+  }
+};
+
+export const createShiftTemplate = async (req, res) => {
+  try {
+    const newTemplate = await createShiftTemplateService(req.body);
+    res.status(201).json(newTemplate);
+  } catch (error) {
+    console.error('createShiftTemplate error:', error);
+    res.status(400).json({ error: 'Error al crear la plantilla' });
+  }
+};
 -----------------------
 ===== ./src/services/user.service.js =====
 import User from '../models/postgres/User.js';

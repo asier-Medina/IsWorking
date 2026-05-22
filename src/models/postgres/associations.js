@@ -1,5 +1,8 @@
 import Company from './Company.js'
 import User from './User.js'
+import ShiftTemplate from './ShiftTemplate.js'
+import Schedule from './Schedule.js'
+import TimeRecord from './TimeRecord.js'
 
 export const setupAssociations = () => {
   // Company -> Users
@@ -82,5 +85,4 @@ export const setupAssociations = () => {
     foreignKey: 'schedule_id',
     as: 'schedule'
   })
-
 }

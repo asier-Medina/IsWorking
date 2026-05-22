@@ -60,6 +60,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      mongo:
+        condition: service_started
     volumes:
       - ./src:/usr/src/app/src
     networks:
