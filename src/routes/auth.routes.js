@@ -9,8 +9,4 @@ router.post('/login',    loginHandler)
 router.post('/refresh',  refreshHandler)
 router.post('/logout',   protect, logoutHandler)
 
-router.post('/login',   loginHandler)
-router.post('/refresh', refreshHandler)
-router.post('/logout',  protect, logoutHandler)  // necesita estar logueado
-
 export default router;

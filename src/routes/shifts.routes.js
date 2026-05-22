@@ -1,8 +1,9 @@
+// routes/shifts.routes.js
 import { Router } from 'express';
 import {
   getShiftTemplates,
   createShiftTemplate
-} from '../controllers/shifts.js';
+} from '../controllers/shifts.controller.js';
 
 const router = Router();
 

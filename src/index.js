@@ -14,7 +14,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth', authRouter)
-app.use('/schedule', schedulesRouter)
+app.use('/api/schedule', schedulesRouter)
 app.use('/shifts', shiftsRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 

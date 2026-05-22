@@ -1,24 +1,12 @@
-import { Op } from 'sequelize';
-import Schedule from '../models/postgres/Schedule.js';
+import {
+  getSchedulesService,
+  assignShiftService,
+  updateScheduleStatusService
+} from '../services/schedules.service.js';
 
 export const getSchedules = async (req, res) => {
   try {
-    const { userId, startDate, endDate } = req.query;
-    const where = {};
-
-    if (userId) where.user_id = userId;
-
-    if (startDate && endDate) {
-      where.work_date = {
-        [Op.between]: [startDate, endDate]
-      };
-    }
-
-    const schedules = await Schedule.findAll({
-      where,
-      order: [['work_date', 'ASC']]
-    });
-
+    const schedules = await getSchedulesService(req.query);
     res.status(200).json(schedules);
   } catch (error) {
     console.error('getSchedules error:', error);
@@ -28,16 +16,7 @@ export const getSchedules = async (req, res) => {
 
 export const assignShift = async (req, res) => {
   try {
-    const { user_id, shift_template_id, work_date, created_by } = req.body;
-
-    const newSchedule = await Schedule.create({
-      user_id,
-      shift_template_id,
-      work_date,
-      status: 'assigned',
-      created_by
-    });
-
+    const newSchedule = await assignShiftService(req.body);
     res.status(201).json(newSchedule);
   } catch (error) {
     console.error('assignShift error:', error);
@@ -50,10 +29,9 @@ export const updateScheduleStatus = async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
 
-    const schedule = await Schedule.findByPk(id);
+    const schedule = await updateScheduleStatusService(id, status);
     if (!schedule) return res.status(404).json({ error: 'Horario no encontrado' });
 
-    await schedule.update({ status });
     res.status(200).json(schedule);
   } catch (error) {
     console.error('updateScheduleStatus error:', error);
