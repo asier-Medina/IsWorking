@@ -16,6 +16,7 @@ import shiftTemplateRouter from './routes/shifts.routes.js'
 
 import { setupAssociations } from './models/postgres/associations.js'
 import { notFound, errorHandler } from './middlewares/errorHandler.js'
+import router from './routes/logs.routes.js'
 
 const app = express()
 
@@ -32,6 +33,7 @@ app.use('/api/users', userRouter)
 app.use('/api/records', recordsRouter)
 app.use('/api/schedules', scheduleRouter)
 app.use('/api/shift-templates', shiftTemplateRouter)
+app.use('/api/logs', router)
 
 app.use(notFound)
 app.use(errorHandler)

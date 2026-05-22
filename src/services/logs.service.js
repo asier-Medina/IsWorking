@@ -8,6 +8,7 @@ const createAuthLog = async (data) => {
 }
 
 const getAuthLogs = async (filters = {}) => {
+  const limit = Math.min(Number(filters.limit) || 100, 500)
   const query = {}
   if (filters.user_id)  query.user_id  = filters.user_id
   if (filters.action)   query.action   = filters.action
@@ -17,7 +18,10 @@ const getAuthLogs = async (filters = {}) => {
     end.setDate(end.getDate() + 1)
     query.created_at = { $gte: start, $lt: end }
   }
-  return await LogAuth.find(query).sort({ created_at: -1 })
+  return await LogAuth
+  .find(query)
+  .sort({ created_at: -1 })
+  .limit(limit)
 }
 
 const deleteAuthLogs = async (before) => {
@@ -30,6 +34,8 @@ const createRecordLog = async (data) => {
 }
 
 const getRecordLogs = async (filters = {}) => {
+  
+  const limit = Math.min(Number(filters.limit) || 100, 500)
   const query = {}
   if (filters.user_id)    query.user_id    = filters.user_id
   if (filters.company_id) query.company_id = filters.company_id
@@ -39,7 +45,10 @@ const getRecordLogs = async (filters = {}) => {
     end.setDate(end.getDate() + 1)
     query.created_at = { $gte: start, $lt: end }
   }
-  return await LogRecord.find(query).sort({ created_at: -1 })
+  return await LogRecord
+  .find(query)
+  .sort({ created_at: -1 })
+  .limit(limit)
 }
 
 const deleteRecordLogs = async (before) => {
@@ -52,6 +61,7 @@ const createAdminLog = async (data) => {
 }
 
 const getAdminLogs = async (filters = {}) => {
+  const limit = Math.min(Number(filters.limit) || 100, 500)
   const query = {}
   if (filters.admin_id)   query.admin_id   = filters.admin_id
   if (filters.company_id) query.company_id = filters.company_id
@@ -61,7 +71,10 @@ const getAdminLogs = async (filters = {}) => {
     end.setDate(end.getDate() + 1)
     query.created_at = { $gte: start, $lt: end }
   }
-  return await LogAdmin.find(query).sort({ created_at: -1 })
+  return await LogAdmin
+  .find(query)
+  .sort({ created_at: -1 })
+  .limit(limit)
 }
 
 const deleteAdminLogs = async (before) => {
