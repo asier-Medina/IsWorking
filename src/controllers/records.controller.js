@@ -2,7 +2,7 @@ import recordsService from '../services/records.service.js'
 
 const getAll = async (req, res, next) => {
   try {
-    const { id, role } = req.user                 
+    const { id, role } = req.user
     const records = await recordsService.getAll(id, role)
     res.json(records)
   } catch (error) {
@@ -12,7 +12,7 @@ const getAll = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const { id: userId, role } = req.user      
+    const { id: userId, role } = req.user
     const record = await recordsService.getById(Number(req.params.id), userId, role)
     res.json(record)
   } catch (error) {
@@ -36,7 +36,7 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const { id: userId, role } = req.user           
+    const { id: userId, role } = req.user
     const record = await recordsService.update(
       Number(req.params.id), userId, role, req.body
     )
@@ -46,4 +46,13 @@ const update = async (req, res, next) => {
   }
 }
 
-export default { getAll, getById, create, update }
+const remove = async (req, res, next) => {
+  try {
+    await recordsService.remove(Number(req.params.id))
+    res.status(204).send()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export default { getAll, getById, create, update, remove }
