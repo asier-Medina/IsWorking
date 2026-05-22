@@ -5,8 +5,10 @@ import connectMongo from './config/mongo.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.routes.js'
 import companyRouter from './routes/company.routes.js'
-import setupAssociations  from './models/postgres/associations.js'
+import { setupAssociations } from './models/postgres/associations.js'
 import { notFound, errorHandler } from './middlewares/errorHandler.js'
+import userRouter from './routes/user.routes.js'
+import recordsRouter from './routes/records.routes.js'
 const app = express()
 setupAssociations()
 
@@ -16,9 +18,9 @@ app.use(cookieParser())
 
 app.use('/api/auth', authRouter)
 app.use('/api/companies', companyRouter)
+app.use('/api/users', userRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
-
-
+app.use('/api/records', recordsRouter)
 const start = async () => {
   await sequelize.authenticate()
   console.log('PostgreSQL conectado')

@@ -53,8 +53,6 @@ services:
       MONGO_URI: mongodb://mongo:27017/isworking
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       PORT: 3000
     ports:
       - "3000:3000"
@@ -199,7 +197,7 @@ VALUES
 INSERT INTO users
 (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
-(1, 'Asier Medina', 'asier@isworking.com', '$2b$10$hash1', 'superadmin', true),
+(1, 'Asier Medina', 'asier@isworking.com', '12345', 'superadmin', true),
 (1, 'Laura Gómez', 'laura@isworking.com', '$2b$10$hash2', 'admin', true),
 (1, 'Jon Etxeberria', 'jon@isworking.com', '$2b$10$hash3', 'employee', false),
 (1, 'Marta Ruiz', 'marta@isworking.com', '$2b$10$hash4', 'employee', true),
@@ -279,7 +277,6 @@ VALUES
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
-    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -310,7 +307,6 @@ VALUES
       "license": "ISC",
       "dependencies": {
         "bcrypt": "^6.0.0",
-        "cookie-parser": "^1.4.7",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
@@ -704,25 +700,6 @@ VALUES
       "engines": {
         "node": ">= 0.6"
       }
-    },
-    "node_modules/cookie-parser": {
-      "version": "1.4.7",
-      "resolved": "https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz",
-      "integrity": "sha512-nGUvgXnotP3BsjiLX2ypbQnWoGUPIIfHQNZkkC668ntrzGWEZVW70HDEB1qnNGMicPje6EttlIgzo51YSwNQGw==",
-      "license": "MIT",
-      "dependencies": {
-        "cookie": "0.7.2",
-        "cookie-signature": "1.0.6"
-      },
-      "engines": {
-        "node": ">= 0.8.0"
-      }
-    },
-    "node_modules/cookie-parser/node_modules/cookie-signature": {
-      "version": "1.0.6",
-      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz",
-      "integrity": "sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==",
-      "license": "MIT"
     },
     "node_modules/cookie-parser": {
       "version": "1.4.7",
@@ -2860,7 +2837,6 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 5432,
-        port: process.env.DB_PORT || 5432,
         dialect: 'postgres',
         logging: false
     }
@@ -3050,7 +3026,7 @@ import recordsService from '../services/records.service.js'
 
 const getAll = async (req, res, next) => {
   try {
-    const { id, role } = req.user                 
+    const { id, role } = req.user
     const records = await recordsService.getAll(id, role)
     res.json(records)
   } catch (error) {
@@ -3060,7 +3036,7 @@ const getAll = async (req, res, next) => {
 
 const getById = async (req, res, next) => {
   try {
-    const { id: userId, role } = req.user      
+    const { id: userId, role } = req.user
     const record = await recordsService.getById(Number(req.params.id), userId, role)
     res.json(record)
   } catch (error) {
@@ -3084,7 +3060,7 @@ const create = async (req, res, next) => {
 
 const update = async (req, res, next) => {
   try {
-    const { id: userId, role } = req.user           
+    const { id: userId, role } = req.user
     const record = await recordsService.update(
       Number(req.params.id), userId, role, req.body
     )
@@ -3094,7 +3070,90 @@ const update = async (req, res, next) => {
   }
 }
 
-export default { getAll, getById, create, update }
+const remove = async (req, res, next) => {
+  try {
+    await recordsService.remove(Number(req.params.id))
+    res.status(204).send()
+  } catch (error) {
+    next(error)
+  }
+}
+
+export default { getAll, getById, create, update, remove }
+-----------------------
+===== ./src/controllers/user.controller.js =====
+import * as UserService from '../services/user.service.js'
+
+export const getUsers = async (req, res) => {
+    try {
+        const { company_id } = req.user
+
+        const users = await UserService.getAllByCompany(company_id);
+
+        return res.status(200).json({ success: true, data: users })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, message: error.message })
+    }
+}
+
+
+export const createEmploye = async (req, res) => {
+    try {
+        const { company_id } = req.user
+        const { name, email, password, role, remote_allowed } = req.body
+
+        const newEmploye = await UserService.createByAdmin({
+            name,
+            email,
+            password,
+            company_id,
+            role: role || 'employee',
+            remote_allowed
+        });
+
+        return res.status(201).json({ success: true, data: newEmploye });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+export const updateEmploye = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { company_id } = req.user;
+
+        const updateEmploye = await UserService.update(id, company_id, req.body);
+
+        return res.status(200).json({ success: true, data: updateEmploye });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error });
+    }
+}
+
+
+export const toggleEmployeStatus = async (req, res) => {
+    try {
+        const { id } = req.params
+        const { company_id } = req.user
+        const { active } = req.body
+
+        if (typeof active !== 'boolean') {
+            return res.status(400).json({ success: false, message: 'El campo activo es requerido' });
+        }
+
+        const result = await UserService.toggleStatus(id, company_id, active);
+
+        const actionTex = active ? 'activo' : 'desactivado'
+        return res.status(200).json({
+            success: true,
+            message: `Empleado ${actionTex} correctamente`,
+            data: result
+        })
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message })
+    }
+}
 -----------------------
 ===== ./src/index.js =====
 import express from 'express'
@@ -3104,8 +3163,11 @@ import connectMongo from './config/mongo.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.routes.js'
 import companyRouter from './routes/company.routes.js'
+import setupAssociations  from './models/postgres/associations.js'
+import { notFound, errorHandler } from './middlewares/errorHandler.js'
+import userRouter from './routes/user.routes.js'
 const app = express()
-
+setupAssociations()
 
 dotenv.config()
 app.use(express.json())
@@ -3113,8 +3175,10 @@ app.use(cookieParser())
 
 app.use('/api/auth', authRouter)
 app.use('/api/companies', companyRouter)
+app.use('/api/users', userRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
+
 const start = async () => {
   await sequelize.authenticate()
   console.log('PostgreSQL conectado')
@@ -3128,36 +3192,9 @@ const start = async () => {
 }
 
 start()
------------------------
-===== ./src/middlewares/auth.js =====
-import jwt from 'jsonwebtoken'
-import User from '../models/postgres/User.js'
 
-export const protect = async (req, res, next) => {
-  try {
-    const token = req.cookies.access_token
-    if (!token) return res.status(401).json({ error: 'No autenticado' })
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-
-    const user = await User.findByPk(decoded.id)
-    if (!user || !user.active) return res.status(401).json({ error: 'Usuario no válido' })
-
-    req.user = user  // mismo req.user que usaba el middleware temporal
-    next()
-const start = async () => {
-  await sequelize.authenticate()
-  console.log('PostgreSQL conectado')
-
-  await connectMongo()
-  console.log('MongoDB conectado')
-
-  app.listen(process.env.PORT || 3000, () =>
-    console.log(`Servidor en puerto ${process.env.PORT || 3000}`)
-  )
-}
-
-start()
+app.use(notFound)
+app.use(errorHandler)
 -----------------------
 ===== ./src/middlewares/auth.js =====
 import jwt from 'jsonwebtoken'
@@ -3195,39 +3232,23 @@ export const isSameCompany = (req, res, next) => {
   }
   next()
 }
-    res.status(401).json({ error: 'Token inválido o expirado' })
-  }
+-----------------------
+===== ./src/middlewares/errorHandler.js =====
+export const notFound = (req, res, next) => {
+  res.status(404).json({
+    error: 'Ruta no encontrada',
+    path: req.originalUrl
+  })
 }
 
-export const isAdmin = (req, res, next) => {
-  if (!['admin', 'superadmin'].includes(req.user.role))
-    return res.status(403).json({ error: 'Acceso denegado' })
-  next()
-}
+export const errorHandler = (err, req, res, next) => {
+  console.error(err)
 
-export const isSameCompany = (req, res, next) => {
-  // Evita que un admin vea datos de otra empresa
-  if (req.user.role !== 'superadmin' &&
-      req.user.company_id !== parseInt(req.params.company_id)) {
-    return res.status(403).json({ error: 'Acceso denegado' })
-  }
-  next()
+  res.status(err.statusCode || 500).json({
+    error: err.message || 'Error interno del servidor'
+  })
 }
 -----------------------
-===== ./src/models/mongo/LogAuth.js =====
-import mongoose from 'mongoose'
-
-const logAuthSchema = new mongoose.Schema({
-  user_id:    { type: Number, required: true },
-  action:     { type: String, enum: ['register', 'login', 'logout', 'login_failed', 'token_refresh'] },
-  ip:         { type: String },
-  user_agent: { type: String },
-  success:    { type: Boolean, default: true },
-  reason:     { type: String },
-  created_at: { type: Date, default: Date.now }
-})
-
-export default mongoose.model('LogAuth', logAuthSchema)
 ===== ./src/models/mongo/LogAuth.js =====
 import mongoose from 'mongoose'
 
@@ -3245,6 +3266,97 @@ export default mongoose.model('LogAuth', logAuthSchema)
 -----------------------
 ===== ./src/models/mongo/mongo.js =====
 //aqui irian los modelos mongoose, pero como no se ha definido ningun modelo, se deja vacio por ahora
+-----------------------
+===== ./src/models/postgres/associations.js =====
+import Company from './Company.js'
+import User from './User.js'
+
+
+
+export const setupAssociations = () => {
+  // Company -> Users
+  Company.hasMany(User, {
+    foreignKey: 'company_id',
+    as: 'users',
+    onDelete: 'CASCADE'
+  })
+
+  User.belongsTo(Company, {
+    foreignKey: 'company_id',
+    as: 'company'
+  })
+
+  /*
+  // Company -> ShiftTemplates
+  Company.hasMany(ShiftTemplate, {
+    foreignKey: 'company_id',
+    as: 'shift_templates',
+    onDelete: 'CASCADE'
+  })
+
+  ShiftTemplate.belongsTo(Company, {
+    foreignKey: 'company_id',
+    as: 'company'
+  })
+
+  // User -> Schedules
+  User.hasMany(Schedule, {
+    foreignKey: 'user_id',
+    as: 'schedules',
+    onDelete: 'CASCADE'
+  })
+
+  Schedule.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  })
+
+  // ShiftTemplate -> Schedules
+  ShiftTemplate.hasMany(Schedule, {
+    foreignKey: 'shift_template_id',
+    as: 'schedules'
+  })
+
+  Schedule.belongsTo(ShiftTemplate, {
+    foreignKey: 'shift_template_id',
+    as: 'shift_template'
+  })
+
+  // User creador -> Schedules
+  User.hasMany(Schedule, {
+    foreignKey: 'created_by',
+    as: 'created_schedules'
+  })
+
+  Schedule.belongsTo(User, {
+    foreignKey: 'created_by',
+    as: 'creator'
+  })
+
+  // User -> TimeRecords
+  User.hasMany(TimeRecord, {
+    foreignKey: 'user_id',
+    as: 'time_records',
+    onDelete: 'CASCADE'
+  })
+
+  TimeRecord.belongsTo(User, {
+    foreignKey: 'user_id',
+    as: 'user'
+  })
+
+  // Schedule -> TimeRecords
+  Schedule.hasMany(TimeRecord, {
+    foreignKey: 'schedule_id',
+    as: 'time_records'
+  })
+
+  TimeRecord.belongsTo(Schedule, {
+    foreignKey: 'schedule_id',
+    as: 'schedule'
+  })
+  */
+}
 -----------------------
 ===== ./src/models/postgres/Company.js =====
 import { DataTypes } from "sequelize";
@@ -3269,6 +3381,61 @@ export default Company;
 -----------------------
 ===== ./src/models/postgres/postgres.js =====
 //aqui irian los modelos sequelize, pero como no se ha definido ningun modelo, se deja vacio por ahora
+-----------------------
+===== ./src/models/postgres/TimeRecord.js =====
+import { DataTypes } from 'sequelize'
+import sequelize from '../../config/postgres.js'
+
+const TimeRecord = sequelize.define('TimeRecord', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+  },
+  user_id: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+  },
+  schedule_id: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
+  type: {
+    type: DataTypes.ENUM('entry', 'break_start', 'break_end', 'exit'),
+    allowNull: false,
+  },
+  mode: {
+    type: DataTypes.ENUM('office', 'remote'),
+    defaultValue: 'office',
+  },
+  timestamp: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW,
+  },
+  latitude: {
+    type: DataTypes.DECIMAL(9, 6),
+    allowNull: true,
+  },
+  longitude: {
+    type: DataTypes.DECIMAL(9, 6),
+    allowNull: true,
+  },
+  accuracy: {
+    type: DataTypes.DECIMAL(6, 2),
+    allowNull: true,
+  },
+  synced: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: true,
+  },
+}, {
+  tableName: 'time_records',
+  timestamps: false,
+  underscored: true,
+})
+
+export default TimeRecord
 -----------------------
 ===== ./src/models/postgres/User.js =====
 import { DataTypes } from 'sequelize'
@@ -3340,8 +3507,42 @@ router.delete('/:id', isAdmin, deleteCompanyHandler)
 
 export default router
 -----------------------
+===== ./src/routes/records.routes.js =====
+import { Router } from 'express'
+import recordsController from '../controllers/records.controller.js'
+import { protect, isAdmin } from '../middlewares/auth.js'
+
+const router = Router()
+
+router.get('/', protect, recordsController.getAll)
+router.post('/', protect, recordsController.create)
+router.get('/:id', protect, recordsController.getById)
+router.patch('/:id', protect, recordsController.update)
+router.delete('/:id', protect, isAdmin, recordsController.remove)
+
+export default router
+-----------------------
 ===== ./src/routes/Routes.js =====
 //aqui iran las rutas de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
+-----------------------
+===== ./src/routes/user.routes.js =====
+import { Router } from "express";
+import * as userController from '../controllers/user.controller.js'
+import { protect, isAdmin } from '../middlewares/auth.js'
+
+const router = Router();
+
+router.use(protect, isAdmin);
+
+router.get('/', userController.getUsers)
+
+router.post('/', userController.createEmploye)
+
+router.put('/:id', userController.updateEmploye)
+
+router.patch('/:id/status', userController.toggleEmployeStatus)
+
+export default router
 -----------------------
 ===== ./src/services/auth.service.js =====
 import jwt from 'jsonwebtoken'
@@ -3510,7 +3711,7 @@ export const createCompany = async (data) => {
 //Actualizar una empresa existente
 export const updateCompany = async (id, data) => {
     const company = await getCompanyById(id)
-    constupdatedCompany = await company.update(data)
+    const updatedCompany = await company.update(data)
     return updatedCompany;
 }
 
@@ -3535,6 +3736,155 @@ export const deleteCompany = async (id) => {
 }
 
 -----------------------
+===== ./src/services/records.service.js =====
+import TimeRecord from '../models/postgres/TimeRecord.js'
+
+const getAll = async (userId, role) => {
+  const where = role === 'admin' || role === 'superadmin'
+    ? {}
+    : { user_id: userId }
+  return await TimeRecord.findAll({ where, order: [['timestamp', 'DESC']] })
+}
+
+const getById = async (id, userId, role) => {
+  const record = await TimeRecord.findByPk(id)
+  if (!record) {
+    const error = new Error('Registro no encontrado')
+    error.statusCode = 404
+    throw error
+  }
+  if (role === 'employee' && record.user_id !== userId) {
+    const error = new Error('No autorizado')
+    error.statusCode = 403
+    throw error
+  }
+  return record
+}
+
+const create = async ({ userId, type, mode, latitude, longitude, accuracy, scheduleId }) => {
+  return await TimeRecord.create({
+    user_id: userId,
+    type,
+    mode,
+    latitude,
+    longitude,
+    accuracy,
+    schedule_id: scheduleId || null,
+    timestamp: new Date(),
+  })
+}
+
+const update = async (id, userId, role, datos) => {
+  const record = await TimeRecord.findByPk(id)
+  if (!record) {
+    const error = new Error('Registro no encontrado')
+    error.statusCode = 404
+    throw error
+  }
+  if (role === 'employee' && record.user_id !== userId) {
+    const error = new Error('No autorizado')
+    error.statusCode = 403
+    throw error
+  }
+  await record.update(datos)
+  return record
+}
+
+const remove = async (id) => {
+  const record = await TimeRecord.findByPk(id)
+  if (!record) {
+    const error = new Error('Registro no encontrado')
+    error.statusCode = 404
+    throw error
+  }
+  await record.destroy()
+}
+
+export default { getAll, getById, create, update, remove }
+-----------------------
 ===== ./src/services/Services.js =====
 //aqui iran los servicios de la aplicacion, es decir, las funciones que se encargaran de manejar la logica de negocio de la aplicacion, asi como tambien de manejar las consultas a la base de datos y las operaciones CRUD de la aplicacion
+-----------------------
+===== ./src/services/user.service.js =====
+import User from '../models/postgres/User.js';
+import bcrypt from 'bcrypt';
+
+const cleanUser = (user) => {
+    if (!user) return null
+    const userJson = user.toJSON ? user.toJSON() : { ...user }
+    delete userJson.password_hash
+    return userJson
+}
+
+export const getAllByCompany = async (companyId, filters = {}) => {
+    const users = await User.findAll({
+        where: {
+            company_id: companyId,
+            ...filters
+        },
+        order: [['created_at', 'DESC']]
+    })
+    return users.map(user => cleanUser(user))
+}
+
+
+export const getById = async (id, companyId) => {
+    const user = await User.findOne({
+        where: { id, company_id: companyId }
+    });
+
+    if (!user) throw new Error('Usuario no encontrado en esta empresa');
+    return cleanUser(user);
+}
+
+export const createByAdmin = async ({ name, email, password, company_id, role, remote_allowed }) => {
+    const exists = await User.findOne({ where: { email } });
+    if (exists) throw new Error('El email ya esta registrado');
+
+    const password_hash = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+        name,
+        email,
+        password_hash,
+        company_id,
+        role,
+        remote_allowed,
+        active: true
+    });
+    return cleanUser(user);
+}
+
+export const update = async (id, companyId, updateData) => {
+    const user = await User.findOne({
+        where: { id, company_id: companyId }
+    });
+
+    if (!user) {
+        throw new Error('Usuario no encontrado');
+    }
+
+    if (updateData.password) {
+        updateData.password_hash = await bcrypt.hash(updateData.password, 10);
+        delete updateData.password
+    }
+
+    await user.update(updateData);
+
+    return cleanUser(user)
+
+}
+
+export const toggleStatus = async (id, companyId, activeStatus) => {
+    const user = await User.findOne({
+        where: { id, company_id: companyId }
+    });
+
+    if (!user) {
+        throw new Error('Usuario no encontrado');
+    }
+
+    await user.update({ active: activeStatus });
+    return { id: user.id, name: user.name, active: user.active }
+}
 -----------------------

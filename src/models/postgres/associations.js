@@ -1,8 +1,6 @@
 import Company from './Company.js'
 import User from './User.js'
 
-
-
 export const setupAssociations = () => {
   // Company -> Users
   Company.hasMany(User, {
@@ -16,7 +14,6 @@ export const setupAssociations = () => {
     as: 'company'
   })
 
-  /*
   // Company -> ShiftTemplates
   Company.hasMany(ShiftTemplate, {
     foreignKey: 'company_id',
@@ -85,5 +82,5 @@ export const setupAssociations = () => {
     foreignKey: 'schedule_id',
     as: 'schedule'
   })
-  */
+
 }
