@@ -1,8 +1,12 @@
-const express = require('express');
-const router = express.Router();
-const shiftsController = require('../controllers/shifts');
+import { Router } from 'express';
+import {
+  getShiftTemplates,
+  createShiftTemplate
+} from '../controllers/shifts.js';
 
-router.get('/', shiftsController.getShiftTemplates);
-router.post('/', shiftsController.createShiftTemplate);
+const router = Router();
 
-module.exports = router;
+router.get('/', getShiftTemplates);
+router.post('/', createShiftTemplate);
+
+export default router;

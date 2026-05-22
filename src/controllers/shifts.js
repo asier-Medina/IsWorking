@@ -1,23 +1,35 @@
-const ShiftTemplate = require('../models/ShiftTemplate');
+import ShiftTemplate from '../models/postgres/ShiftTemplate.js';
 
-//LLama a la base de datos y trae todas las plantillas de turnos existentes y devuelve al usuario
-
-exports.getShiftTemplates = async (req, res) => {
+export const getShiftTemplates = async (req, res) => {
   try {
-    const templates = await ShiftTemplate.find();
+    const templates = await ShiftTemplate.findAll({
+      order: [['id', 'ASC']]
+    });
     res.status(200).json(templates);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener las plantillas' }); //Si algo sale mal error.
+    console.error('getShiftTemplates error:', error);
+    res.status(500).json({ error: 'Error al obtener las plantillas' });
   }
 };
-// registra los turnos, valida y guarda en la base de datos
-exports.createShiftTemplate = async (req, res) => {
+
+export const createShiftTemplate = async (req, res) => {
   try {
-    const { name, startTime, endTime } = req.body;
-    const newTemplate = new ShiftTemplate({ name, startTime, endTime });
-    await newTemplate.save();
+    const { company_id, name, type, start_time, end_time, break_start, break_end, has_break } = req.body;
+
+    const newTemplate = await ShiftTemplate.create({
+      company_id,
+      name,
+      type,
+      start_time,
+      end_time,
+      break_start,
+      break_end,
+      has_break
+    });
+
     res.status(201).json(newTemplate);
   } catch (error) {
+    console.error('createShiftTemplate error:', error);
     res.status(400).json({ error: 'Error al crear la plantilla' });
   }
 };
