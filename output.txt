@@ -53,6 +53,8 @@ services:
       MONGO_URI: mongodb://mongo:27017/isworking
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
       PORT: 3000
     ports:
       - "3000:3000"
@@ -277,6 +279,7 @@ VALUES
   "dependencies": {
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
@@ -307,6 +310,7 @@ VALUES
       "license": "ISC",
       "dependencies": {
         "bcrypt": "^6.0.0",
+        "cookie-parser": "^1.4.7",
         "cookie-parser": "^1.4.7",
         "cors": "^2.8.6",
         "dotenv": "^17.4.2",
@@ -700,6 +704,25 @@ VALUES
       "engines": {
         "node": ">= 0.6"
       }
+    },
+    "node_modules/cookie-parser": {
+      "version": "1.4.7",
+      "resolved": "https://registry.npmjs.org/cookie-parser/-/cookie-parser-1.4.7.tgz",
+      "integrity": "sha512-nGUvgXnotP3BsjiLX2ypbQnWoGUPIIfHQNZkkC668ntrzGWEZVW70HDEB1qnNGMicPje6EttlIgzo51YSwNQGw==",
+      "license": "MIT",
+      "dependencies": {
+        "cookie": "0.7.2",
+        "cookie-signature": "1.0.6"
+      },
+      "engines": {
+        "node": ">= 0.8.0"
+      }
+    },
+    "node_modules/cookie-parser/node_modules/cookie-signature": {
+      "version": "1.0.6",
+      "resolved": "https://registry.npmjs.org/cookie-signature/-/cookie-signature-1.0.6.tgz",
+      "integrity": "sha512-QADzlaHc8icV8I7vbaJXJwod9HWYp8uCqf1xa4OfNu1T7JVxQIrUgOWtHdNDtPiywmFbiS12VjotIXLrKM3orQ==",
+      "license": "MIT"
     },
     "node_modules/cookie-parser": {
       "version": "1.4.7",
@@ -2837,6 +2860,7 @@ const sequelize = new Sequelize(
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 5432,
+        port: process.env.DB_PORT || 5432,
         dialect: 'postgres',
         logging: false
     }
@@ -3021,6 +3045,57 @@ export const deleteCompanyHandler = async (req, res) => {
 ===== ./src/controllers/Controller.js =====
 //aqui iran los controladores de la aplicacion, es decir, las funciones que se encargaran de manejar las rutas y la logica de negocio de la aplicacion
 -----------------------
+===== ./src/controllers/records.controller.js =====
+import recordsService from '../services/records.service.js'
+
+const getAll = async (req, res, next) => {
+  try {
+    const { id, role } = req.user                 
+    const records = await recordsService.getAll(id, role)
+    res.json(records)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const getById = async (req, res, next) => {
+  try {
+    const { id: userId, role } = req.user      
+    const record = await recordsService.getById(Number(req.params.id), userId, role)
+    res.json(record)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const create = async (req, res, next) => {
+  try {
+    const { id: userId } = req.user
+    const { type, mode, latitude, longitude, accuracy, scheduleId } = req.body
+    if (!type) {
+      return res.status(400).json({ error: 'El campo type es obligatorio' })
+    }
+    const record = await recordsService.create({ userId, type, mode, latitude, longitude, accuracy, scheduleId })
+    res.status(201).json(record)
+  } catch (error) {
+    next(error)
+  }
+}
+
+const update = async (req, res, next) => {
+  try {
+    const { id: userId, role } = req.user           
+    const record = await recordsService.update(
+      Number(req.params.id), userId, role, req.body
+    )
+    res.json(record)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export default { getAll, getById, create, update }
+-----------------------
 ===== ./src/index.js =====
 import express from 'express'
 import dotenv from 'dotenv'
@@ -3040,6 +3115,36 @@ app.use('/api/auth', authRouter)
 app.use('/api/companies', companyRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
+const start = async () => {
+  await sequelize.authenticate()
+  console.log('PostgreSQL conectado')
+
+  await connectMongo()
+  console.log('MongoDB conectado')
+
+  app.listen(process.env.PORT || 3000, () =>
+    console.log(`Servidor en puerto ${process.env.PORT || 3000}`)
+  )
+}
+
+start()
+-----------------------
+===== ./src/middlewares/auth.js =====
+import jwt from 'jsonwebtoken'
+import User from '../models/postgres/User.js'
+
+export const protect = async (req, res, next) => {
+  try {
+    const token = req.cookies.access_token
+    if (!token) return res.status(401).json({ error: 'No autenticado' })
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET)
+
+    const user = await User.findByPk(decoded.id)
+    if (!user || !user.active) return res.status(401).json({ error: 'Usuario no válido' })
+
+    req.user = user  // mismo req.user que usaba el middleware temporal
+    next()
 const start = async () => {
   await sequelize.authenticate()
   console.log('PostgreSQL conectado')
@@ -3090,7 +3195,39 @@ export const isSameCompany = (req, res, next) => {
   }
   next()
 }
+    res.status(401).json({ error: 'Token inválido o expirado' })
+  }
+}
+
+export const isAdmin = (req, res, next) => {
+  if (!['admin', 'superadmin'].includes(req.user.role))
+    return res.status(403).json({ error: 'Acceso denegado' })
+  next()
+}
+
+export const isSameCompany = (req, res, next) => {
+  // Evita que un admin vea datos de otra empresa
+  if (req.user.role !== 'superadmin' &&
+      req.user.company_id !== parseInt(req.params.company_id)) {
+    return res.status(403).json({ error: 'Acceso denegado' })
+  }
+  next()
+}
 -----------------------
+===== ./src/models/mongo/LogAuth.js =====
+import mongoose from 'mongoose'
+
+const logAuthSchema = new mongoose.Schema({
+  user_id:    { type: Number, required: true },
+  action:     { type: String, enum: ['register', 'login', 'logout', 'login_failed', 'token_refresh'] },
+  ip:         { type: String },
+  user_agent: { type: String },
+  success:    { type: Boolean, default: true },
+  reason:     { type: String },
+  created_at: { type: Date, default: Date.now }
+})
+
+export default mongoose.model('LogAuth', logAuthSchema)
 ===== ./src/models/mongo/LogAuth.js =====
 import mongoose from 'mongoose'
 
