@@ -4,6 +4,7 @@ import sequelize from './config/postgres.js'
 import connectMongo from './config/mongo.js'
 import cookieParser from 'cookie-parser'
 import authRouter from './routes/auth.routes.js'
+import userRouter from './routes/user.routes.js'
 const app = express()
 
 
@@ -12,7 +13,9 @@ app.use(express.json())
 app.use(cookieParser())
 
 app.use('/api/auth', authRouter)
+app.use('/api/users', userRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
+
 
 const start = async () => {
   await sequelize.authenticate()
