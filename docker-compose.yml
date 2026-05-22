@@ -52,6 +52,8 @@ services:
       MONGO_URI: mongodb://mongo:27017/isworking
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRES_IN: ${JWT_EXPIRES_IN}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN}
       PORT: 3000
     ports:
       - "3000:3000"

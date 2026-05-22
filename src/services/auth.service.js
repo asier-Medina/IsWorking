@@ -2,8 +2,6 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 import User from '../models/postgres/User.js'
 import LogAuth from '../models/mongo/LogAuth.js'
-import dotenv from 'dotenv';
-const env = dotenv.config();
 
 // ── Helpers de token ──────────────────────────────────────
 
