@@ -18,6 +18,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/companies', companyRouter)
 app.get('/health', (req, res) => res.json({ status: 'ok' }))
 
+
 const start = async () => {
   await sequelize.authenticate()
   console.log('PostgreSQL conectado')
