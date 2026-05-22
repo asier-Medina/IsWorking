@@ -48,11 +48,15 @@ export const register = async ({ name, email, password, company_id, role = 'empl
 // ── Login ─────────────────────────────────────────────────
 
 export const login = async ({ email, password, ip, userAgent }) => {
-
+console.log('JWT_SECRET:', process.env.JWT_SECRET);
+console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
+console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
+console.log('JWT_REFRESH_EXPIRES_IN:', process.env.JWT_REFRESH_EXPIRES_IN);
   const user = await User.findOne({ where: { email } })
-
+  console.log("he llegado hasta aqui 1")
   // Usuario no existe o contraseña incorrecta — mismo mensaje por seguridad
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
+        console.log("he llegado hasta aqui 2 condicional no se")
     await LogAuth.create({
       user_id: user?.id || 0,
       email,
@@ -62,11 +66,12 @@ export const login = async ({ email, password, ip, userAgent }) => {
       success: false,
       reason: !user ? 'user_not_found' : 'wrong_password'
     })
+
     throw new Error('Credenciales incorrectas')
   }
-
+ console.log("he llegado hasta aqui 2")
   if (!user.active) throw new Error('Usuario desactivado')
-
+ console.log("he llegado hasta aqui 3 usuario activo no hay problema")
   const accessToken  = generateAccessToken(user)
   const refreshToken = generateRefreshToken(user)
 
@@ -78,6 +83,8 @@ export const login = async ({ email, password, ip, userAgent }) => {
     user_agent: userAgent,
     success:    true
   })
+
+ console.log("he llegado hasta aqui 4 salgo de auth create");
 
   return {
     accessToken,
@@ -116,3 +123,4 @@ export const logout = async (userId, email) => {
     success: true
   })
 }
+
