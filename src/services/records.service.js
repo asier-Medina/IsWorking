@@ -1,10 +1,30 @@
-import TimeRecord from '../models/postgres/TimeRecord.js'
+import { Op }       from 'sequelize'
+import TimeRecord   from '../models/postgres/TimeRecord.js'
+import User         from '../models/postgres/User.js'
+import logsService  from './logs.service.js'
 
-const getAll = async (userId, role) => {
-  const where = role === 'admin' || role === 'superadmin'
-    ? {}
-    : { user_id: userId }
-  return await TimeRecord.findAll({ where, order: [['timestamp', 'DESC']] })
+const NEXT_VALID_TYPE = {
+  null:        ['entry'],
+  entry:       ['break_start', 'exit'],
+  break_start: ['break_end'],
+  break_end:   ['exit'],
+  exit:        ['entry']
+}
+
+const getAll = async (userId, role, companyId) => {
+  if (role === 'superadmin') {
+    return await TimeRecord.findAll({ order: [['timestamp', 'DESC']] })
+  }
+  if (role === 'admin') {
+    return await TimeRecord.findAll({
+      include: [{ model: User, where: { company_id: companyId }, attributes: [] }],
+      order: [['timestamp', 'DESC']]
+    })
+  }
+  return await TimeRecord.findAll({
+    where: { user_id: userId },
+    order: [['timestamp', 'DESC']]
+  })
 }
 
 const getById = async (id, userId, role) => {
@@ -23,16 +43,48 @@ const getById = async (id, userId, role) => {
 }
 
 const create = async ({ userId, type, mode, latitude, longitude, accuracy, scheduleId }) => {
-  return await TimeRecord.create({
-    user_id: userId,
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const last = await TimeRecord.findOne({
+    where: { user_id: userId, timestamp: { [Op.gte]: today } },
+    order: [['timestamp', 'DESC']]
+  })
+
+  const lastType   = last?.type || null
+  const validTypes = NEXT_VALID_TYPE[lastType]
+
+  if (!validTypes.includes(type)) {
+    const error = new Error(
+      `Fichaje inválido. Después de "${lastType || 'nada'}" se espera: ${validTypes.join(' o ')}`
+    )
+    error.statusCode = 400
+    throw error
+  }
+
+  const record = await TimeRecord.create({
+    user_id:     userId,
     type,
     mode,
     latitude,
     longitude,
     accuracy,
     schedule_id: scheduleId || null,
-    timestamp: new Date(),
+    timestamp:   new Date(),
   })
+
+  try {
+    await logsService.createRecordLog({
+      record_id: record.id,
+      user_id:   userId,
+      type, mode, latitude, longitude, accuracy,
+      timestamp: record.timestamp
+    })
+  } catch (err) {
+    console.error('Error escribiendo log de fichaje:', err.message)
+  }
+
+  return record
 }
 
 const update = async (id, userId, role, datos) => {

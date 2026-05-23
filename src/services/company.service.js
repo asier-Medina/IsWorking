@@ -1,35 +1,31 @@
-import Company from '../models/postgres/Company.js';
+import Company from '../models/postgres/Company.js'
+import logsService from './logs.service.js'
 
-//Obtener todas las empresas
 export const getAllCompanies = async () => {
-    const companies = await Company.findAll({
+    return await Company.findAll({
         order: [['created_at', 'DESC']]
-    });
-    return companies;
+    })
 }
 
-//Obtener una empresa por su ID
 export const getCompanyById = async (id) => {
-    const company = await Company.findByPk(id);
+    const company = await Company.findByPk(id)
     if (!company) {
-        throw new Error('Company not found');
+        const error = new Error('Empresa no encontrada')
+        error.statusCode = 404
+        throw error
     }
-    return company;
+    return company
 }
 
-//Crear una nueva empresa
-export const createCompany = async (data) => {
-    const{
-    name,
-    timezone,
-    office_latitude,
-    office_longitude,
-    office_radius_m,
-    active
-    } = data
+export const createCompany = async (data, adminId) => {
+    const { name, timezone, office_latitude, office_longitude, office_radius_m, active } = data
+
     if (!name) {
-        throw new Error('El nombre de la empresa es obligatorio')
+        const error = new Error('El nombre de la empresa es obligatorio')
+        error.statusCode = 400
+        throw error
     }
+
     const newCompany = await Company.create({
         name,
         timezone,
@@ -37,32 +33,85 @@ export const createCompany = async (data) => {
         office_longitude,
         office_radius_m,
         active
-    });
-    return newCompany;
+    })
+
+    try {
+        await logsService.createAdminLog({
+            admin_id:    adminId,
+            action:      'create_company',
+            target_type: 'company',
+            target_id:   newCompany.id,
+            payload:     { name }
+        })
+    } catch (err) {
+        console.error('Error log admin:', err.message)
+    }
+
+    return newCompany
 }
-//Actualizar una empresa existente
+
 export const updateCompany = async (id, data) => {
     const company = await getCompanyById(id)
     const updatedCompany = await company.update(data)
-    return updatedCompany;
+    return updatedCompany
 }
 
-// Desactivar una empresa (soft delete)
-export const deactivateCompany = async (id) => {
+export const deactivateCompany = async (id, adminId) => {
     const company = await getCompanyById(id)
     await company.update({ active: false })
-    return company;
+
+    try {
+        await logsService.createAdminLog({
+            admin_id:    adminId,
+            action:      'deactivate_company',
+            target_type: 'company',
+            target_id:   id
+        })
+    } catch (err) {
+        console.error('Error log admin:', err.message)
+    }
+
+    return company
 }
 
-//Activar una empresa
-export const activateCompany = async (id) => {
+export const activateCompany = async (id, adminId) => {
     const company = await getCompanyById(id)
     await company.update({ active: true })
-    return company;
+
+    try {
+        await logsService.createAdminLog({
+            admin_id:    adminId,
+            action:      'activate_company',
+            target_type: 'company',
+            target_id:   id
+        })
+    } catch (err) {
+        console.error('Error log admin:', err.message)
+    }
+
+    return company
 }
-//Eliminar una empresa (hard delete)
-export const deleteCompany = async (id) => {
+
+export const deleteCompany = async (id, role, adminId) => {
+    if (role !== 'superadmin') {
+        const error = new Error('Solo el superadmin puede eliminar empresas')
+        error.statusCode = 403
+        throw error
+    }
+
     const company = await getCompanyById(id)
     await company.destroy()
-    return { message: 'Empresa eliminada correctamente' };
+
+    try {
+        await logsService.createAdminLog({
+            admin_id:    adminId,
+            action:      'delete_company',
+            target_type: 'company',
+            target_id:   id
+        })
+    } catch (err) {
+        console.error('Error log admin:', err.message)
+    }
+
+    return { message: 'Empresa eliminada correctamente' }
 }
