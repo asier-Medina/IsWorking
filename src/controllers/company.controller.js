@@ -1,95 +1,75 @@
-import * as companyService from '../services/company.service.js';
+import * as companyService from '../services/company.service.js'
 
-//GET /api/companies
-export const getAllCompaniesHandler = async (req, res) => {
+// GET /api/companies
+export const getAllCompaniesHandler = async (req, res, next) => {
   try {
-    const companies = await companyService.getAllCompanies();
-    res.json({
-        count: companies.length,
-        companies
-    });
+    const companies = await companyService.getAllCompanies()
+    res.json({ count: companies.length, companies })
   } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch companies' });
-  }
-    }
-
-//GET /api/companies/:id
-export const getCompanyByIdHandler = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const company = await companyService.getCompanyById(id);
-
-   res.json({ company })
-}catch (error) {
-    res.status(404).json({ error: 'Company not found' });
-  }
-}
-//POST /api/companies
-export const createCompanyHandler = async (req, res) => {
-  try {
-    const company= await companyService.createCompany(req.body);
-
-    res.status(201).json({ 
-        message: 'Company created successfully',
-        company
-    })
-  } catch (error) {
-    res.status(400).json({ error: 'Failed to create company' });
+    next(error)
   }
 }
 
-//PATCH /api/companies/:id
-export const updateCompanyHandler = async (req, res) => {
+// GET /api/companies/:id
+export const getCompanyByIdHandler = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const updatedCompany = await companyService.updateCompany(id, req.body);
-
-    res.json({
-        message: 'Company updated successfully',
-        company: updatedCompany
-    })
+    const company = await companyService.getCompanyById(req.params.id)
+    res.json({ company })
   } catch (error) {
-    res.status(404).json({ error: 'Failed to update company' });
-  }}
-//PATCH /api/companies/:id/activate
-export const activateCompanyHandler = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const activatedCompany = await companyService.activateCompany(id);
-
-    res.json({
-        message: 'Company activated successfully',
-        company: activatedCompany
-    })
-  } catch (error) {
-    res.status(404).json({ error: 'Failed to activate company' });
+    next(error)
   }
 }
 
-//PATCH /api/companies/:id/deactivate
-export const deactivateCompanyHandler = async (req, res) => {
+// POST /api/companies
+export const createCompanyHandler = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const deactivatedCompany = await companyService.deactivateCompany(id);
-
-    res.json({
-        message: 'Company deactivated successfully',
-        company: deactivatedCompany
-    })
+    const company = await companyService.createCompany(req.body, req.user.id)
+    res.status(201).json({ message: 'Empresa creada correctamente', company })
   } catch (error) {
-    res.status(404).json({ error: 'Failed to deactivate company' });
+    next(error)
   }
 }
 
-//DELETE /api/companies/:id
-export const deleteCompanyHandler = async (req, res) => {
+// PATCH /api/companies/:id
+export const updateCompanyHandler = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const result = await companyService.deleteCompany(id)
+    const company = await companyService.updateCompany(req.params.id, req.body)
+    res.json({ message: 'Empresa actualizada correctamente', company })
+  } catch (error) {
+    next(error)
+  }
+}
 
+// PATCH /api/companies/:id/activate
+export const activateCompanyHandler = async (req, res, next) => {
+  try {
+    const company = await companyService.activateCompany(req.params.id, req.user.id)
+    res.json({ message: 'Empresa activada correctamente', company })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// PATCH /api/companies/:id/deactivate
+export const deactivateCompanyHandler = async (req, res, next) => {
+  try {
+    const company = await companyService.deactivateCompany(req.params.id, req.user.id)
+    res.json({ message: 'Empresa desactivada correctamente', company })
+  } catch (error) {
+    next(error)
+  }
+}
+
+// DELETE /api/companies/:id
+export const deleteCompanyHandler = async (req, res, next) => {
+  try {
+    const result = await companyService.deleteCompany(
+      req.params.id,
+      req.user.role,
+      req.user.id
+    )
     res.json(result)
-    } catch (error) {
-    res.status(404).json({ error: 'Failed to delete company' });
+  } catch (error) {
+    next(error)
   }
 }

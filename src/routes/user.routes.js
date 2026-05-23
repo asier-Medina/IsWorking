@@ -1,17 +1,15 @@
-import { Router } from "express";
+import { Router } from 'express'
 import * as userController from '../controllers/user.controller.js'
 import { protect, isAdmin } from '../middlewares/auth.js'
 
-const router = Router();
+const router = Router()
 
-router.use(protect, isAdmin);
+router.use(protect)
 
-router.get('/', userController.getUsers)
-
-router.post('/', userController.createEmploye)
-
-router.put('/:id', userController.updateEmploye)
-
-router.patch('/:id/status', userController.toggleEmployeStatus)
+router.get('/',              isAdmin, userController.getUsers)
+router.get('/:id',           isAdmin, userController.getUserById)      // ← nuevo
+router.post('/',             isAdmin, userController.createEmployee)
+router.patch('/:id',         isAdmin, userController.updateEmployee)   // patch en vez de put
+router.patch('/:id/status',  isAdmin, userController.toggleEmployeeStatus)
 
 export default router

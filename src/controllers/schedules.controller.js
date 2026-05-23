@@ -2,39 +2,70 @@ import {
   getSchedulesService,
   assignShiftService,
   updateScheduleStatusService
-} from '../services/schedules.service.js';
+} from '../services/schedules.service.js'
 
-export const getSchedules = async (req, res) => {
+const VALID_STATUSES = ['assigned', 'confirmed', 'absent']
+
+// GET /api/schedules
+export const getSchedules = async (req, res, next) => {
   try {
-    const schedules = await getSchedulesService(req.query);
-    res.status(200).json(schedules);
-  } catch (error) {
-    console.error('getSchedules error:', error);
-    res.status(500).json({ error: 'Error al obtener los horarios' });
-  }
-};
+    const { role, id: userId, company_id } = req.user
 
-export const assignShift = async (req, res) => {
+    // Empleado solo ve sus propios horarios
+    const filters = {
+      ...req.query,
+      ...(role === 'employee' && { userId })
+    }
+
+    const schedules = await getSchedulesService(filters, company_id, role)
+    res.json(schedules)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// POST /api/schedules
+export const assignShift = async (req, res, next) => {
   try {
-    const newSchedule = await assignShiftService(req.body);
-    res.status(201).json(newSchedule);
-  } catch (error) {
-    console.error('assignShift error:', error);
-    res.status(400).json({ error: 'Error al asignar el turno o ya tiene un turno ese día' });
-  }
-};
+    const { user_id, shift_template_id, work_date } = req.body
 
-export const updateScheduleStatus = async (req, res) => {
+    if (!user_id || !shift_template_id || !work_date) {
+      return res.status(400).json({
+        error: 'user_id, shift_template_id y work_date son obligatorios'
+      })
+    }
+
+    const schedule = await assignShiftService({
+      user_id,
+      shift_template_id,
+      work_date,
+      created_by: req.user.id
+    })
+    res.status(201).json(schedule)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// PATCH /api/schedules/:id
+export const updateScheduleStatus = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { status } = req.body;
+    const { status } = req.body
 
-    const schedule = await updateScheduleStatusService(id, status);
-    if (!schedule) return res.status(404).json({ error: 'Horario no encontrado' });
+    if (!status) {
+      return res.status(400).json({ error: 'El campo status es obligatorio' })
+    }
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({
+        error: `Status inválido. Valores permitidos: ${VALID_STATUSES.join(', ')}`
+      })
+    }
 
-    res.status(200).json(schedule);
+    const schedule = await updateScheduleStatusService(req.params.id, status)
+    if (!schedule) return res.status(404).json({ error: 'Horario no encontrado' })
+
+    res.json(schedule)
   } catch (error) {
-    console.error('updateScheduleStatus error:', error);
-    res.status(400).json({ error: 'Error al cambiar el estado del horario' });
+    next(error)
   }
-};
+}

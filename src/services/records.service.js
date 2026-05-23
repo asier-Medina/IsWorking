@@ -111,6 +111,29 @@ const remove = async (id) => {
     throw error
   }
   await record.destroy()
+
 }
 
-export default { getAll, getById, create, update, remove }
+const getStatus = async (userId) => {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const todayRecords = await TimeRecord.findAll({
+    where: {
+      user_id:   userId,
+      timestamp: { [Op.gte]: today }
+    },
+    order: [['timestamp', 'ASC']]
+  })
+
+  const lastRecord = todayRecords.at(-1) || null
+  const lastType   = lastRecord?.type || null
+
+  return {
+    lastRecord,
+    nextAllowed: NEXT_VALID_TYPE[lastType],
+    todayRecords
+  }
+}
+
+export default { getAll, getById, create, update, remove, getStatus }

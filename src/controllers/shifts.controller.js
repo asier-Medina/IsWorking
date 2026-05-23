@@ -1,35 +1,43 @@
-import ShiftTemplate from '../models/postgres/ShiftTemplate.js';
+import {
+  getShiftTemplatesService,
+  createShiftTemplateService
+} from '../services/shifts.service.js'
 
-export const getShiftTemplates = async (req, res) => {
+const VALID_TYPES = ['morning', 'afternoon', 'split']
+
+// GET /api/shift-templates
+export const getShiftTemplates = async (req, res, next) => {
   try {
-    const templates = await ShiftTemplate.findAll({
-      order: [['id', 'ASC']]
-    });
-    res.status(200).json(templates);
+    const templates = await getShiftTemplatesService()
+    res.json(templates)
   } catch (error) {
-    console.error('getShiftTemplates error:', error);
-    res.status(500).json({ error: 'Error al obtener las plantillas' });
+    next(error)
   }
-};
+}
 
-export const createShiftTemplate = async (req, res) => {
+// POST /api/shift-templates
+export const createShiftTemplate = async (req, res, next) => {
   try {
-    const { company_id, name, type, start_time, end_time, break_start, break_end, has_break } = req.body;
+    const { name, type, start_time, end_time, break_start, break_end, has_break } = req.body
+    const company_id = req.user.company_id  // siempre de req.user, nunca del body
 
-    const newTemplate = await ShiftTemplate.create({
-      company_id,
-      name,
-      type,
-      start_time,
-      end_time,
-      break_start,
-      break_end,
-      has_break
-    });
+    if (!name || !type || !start_time || !end_time) {
+      return res.status(400).json({
+        error: 'name, type, start_time y end_time son obligatorios'
+      })
+    }
+    if (!VALID_TYPES.includes(type)) {
+      return res.status(400).json({
+        error: `Tipo inválido. Valores permitidos: ${VALID_TYPES.join(', ')}`
+      })
+    }
 
-    res.status(201).json(newTemplate);
+    const template = await createShiftTemplateService({
+      company_id, name, type, start_time, end_time,
+      break_start, break_end, has_break
+    })
+    res.status(201).json(template)
   } catch (error) {
-    console.error('createShiftTemplate error:', error);
-    res.status(400).json({ error: 'Error al crear la plantilla' });
+    next(error)
   }
-};
+}

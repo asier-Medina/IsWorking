@@ -4,10 +4,14 @@ import { protect, isAdmin } from '../middlewares/auth.js'
 
 const router = Router()
 
-router.get('/', protect, recordsController.getAll)
-router.post('/', protect, recordsController.create)
-router.get('/:id', protect, recordsController.getById)
-router.patch('/:id', protect, recordsController.update)
-router.delete('/:id', protect, isAdmin, recordsController.remove)
+router.use(protect)
+
+router.get('/',      recordsController.getAll)
+router.post('/',     recordsController.create)
+router.post('/sync', recordsController.sync)       //offline sync
+router.get('/status', recordsController.getStatus) 
+router.get('/:id',   recordsController.getById)
+router.patch('/:id', recordsController.update)
+router.delete('/:id', isAdmin, recordsController.remove)
 
 export default router

@@ -1,13 +1,15 @@
-// routes/shifts.routes.js
-import { Router } from 'express';
+import { Router } from 'express'
 import {
   getShiftTemplates,
   createShiftTemplate
-} from '../controllers/shifts.controller.js';
+} from '../controllers/shifts.controller.js'
+import { protect, isAdmin } from '../middlewares/auth.js'
 
-const router = Router();
+const router = Router()
 
-router.get('/', getShiftTemplates);
-router.post('/', createShiftTemplate);
+router.use(protect)
 
-export default router;
+router.get('/',  getShiftTemplates)              // todos pueden ver las plantillas
+router.post('/', isAdmin, createShiftTemplate)  // solo admin crea plantillas
+
+export default router
