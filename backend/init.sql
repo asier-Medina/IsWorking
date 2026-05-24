@@ -1,3 +1,4 @@
+CREATE DATABASE isworking;
 CREATE TABLE IF NOT EXISTS companies (
   id               SERIAL PRIMARY KEY,
   name             VARCHAR(100) NOT NULL,
@@ -79,7 +80,7 @@ VALUES
 INSERT INTO users
 (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
-(1, 'Asier Medina', 'asier@isworking.com', '$2b$10$hash1', 'superadmin', true),
+(1, 'Asier Medina', 'asier@isworking.com', '12345', 'superadmin', true),
 (1, 'Laura Gómez', 'laura@isworking.com', '$2b$10$hash2', 'admin', true),
 (1, 'Jon Etxeberria', 'jon@isworking.com', '$2b$10$hash3', 'employee', false),
 (1, 'Marta Ruiz', 'marta@isworking.com', '$2b$10$hash4', 'employee', true),
