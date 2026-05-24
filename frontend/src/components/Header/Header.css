@@ -1,0 +1,346 @@
+/* Header.css — consume variables de index.css */
+
+/* Reset */
+.header *,
+.header *::before,
+.header *::after {
+  box-sizing: border-box;
+}
+
+/* Contenedor */
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: var(--iw-surface);
+  border-bottom: 1.5px solid var(--iw-border);
+  box-shadow: var(--iw-shadow-md);
+  font-family: var(--iw-font-base);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: var(--iw-max-width);
+  height: var(--iw-header-height);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/* Logo / Marca */
+.header__brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  text-decoration: none;
+}
+
+.header__brand:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+  border-radius: var(--iw-radius-sm);
+}
+
+.header__logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--iw-radius-logo);
+  background: linear-gradient(135deg, var(--iw-primary-vivid), var(--iw-primary-soft));
+  color: #ffffff;
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+}
+
+.header__company {
+  font-size: var(--iw-font-size-xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: -0.3px;
+}
+
+/* Navegación desktop */
+.header__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.header__nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--iw-radius-sm);
+  text-decoration: none;
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-medium);
+  color: var(--iw-text-muted);
+  transition: background-color var(--iw-transition), color var(--iw-transition);
+  white-space: nowrap;
+}
+
+.header__nav-link:hover,
+.header__nav-link.active {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+}
+
+.header__nav-link:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+}
+
+/* Iconos de nav: morado sobre blanco → 9.4:1 ✓, sin fondo extra */
+.header__nav-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* Acciones derecha */
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+/* Botón de icono (notificaciones) */
+.header__icon-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--iw-radius-sm);
+  border: 1.5px solid var(--iw-border);
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color var(--iw-transition), border-color var(--iw-transition);
+}
+
+.header__icon-btn:hover {
+  background-color: var(--iw-primary-light);
+  border-color: var(--iw-primary-border);
+}
+
+.header__icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+}
+
+/* Icono de notificación: morado sobre blanco → visible sin fondo */
+.header__icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+}
+
+.header__badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  border-radius: var(--iw-radius-full);
+  border: 1.5px solid var(--iw-surface);
+  background-color: var(--iw-danger);
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: var(--iw-weight-bold);
+  line-height: 1;
+}
+
+/* Avatar y dropdown */
+.header__profile-wrap {
+  position: relative;
+}
+
+.header__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid var(--iw-surface);
+  outline: 2px solid var(--iw-primary);
+  background: linear-gradient(135deg, var(--iw-primary-vivid), var(--iw-primary-soft));
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: var(--iw-weight-bold);
+  cursor: pointer;
+  overflow: hidden;
+  transition: outline-width var(--iw-transition);
+}
+
+.header__avatar:hover         { outline-width: 3px; }
+.header__avatar:focus-visible { outline: none; box-shadow: var(--iw-focus-ring); }
+
+.header__avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header__dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 210px;
+  background-color: var(--iw-surface);
+  border: 1.5px solid var(--iw-border);
+  border-radius: var(--iw-radius-md);
+  box-shadow: var(--iw-shadow-lg);
+  overflow: hidden;
+  animation: iw-dropdown-in 0.15s ease;
+}
+
+@keyframes iw-dropdown-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.header__dropdown-user {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.875rem 1rem 0.75rem;
+}
+
+.header__dropdown-name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+}
+
+.header__dropdown-role {
+  font-size: var(--iw-font-size-xs);
+  color: var(--iw-text-muted);
+}
+
+.header__dropdown-divider {
+  border: none;
+  border-top: 1px solid var(--iw-border);
+  margin: 0;
+}
+
+.header__dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem;
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-medium);
+  color: var(--iw-text-subtle);
+  text-decoration: none;
+  transition: background-color var(--iw-transition), color var(--iw-transition);
+}
+
+.header__dropdown-item:hover,
+.header__dropdown-item:focus-visible {
+  outline: none;
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+}
+
+/* Iconos del dropdown: morado sobre blanco → sin fondo extra */
+.header__dropdown-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.header__dropdown-item--danger       { color: var(--iw-danger); }
+.header__dropdown-item--danger:hover,
+.header__dropdown-item--danger:focus-visible {
+  background-color: var(--iw-danger-light);
+  color: var(--iw-danger-hover);
+}
+
+/* Hamburguesa (móvil) */
+.header__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border: none;
+  border-radius: var(--iw-radius-sm);
+  background-color: transparent;
+  cursor: pointer;
+  transition: background-color var(--iw-transition);
+}
+
+.header__hamburger:hover         { background-color: var(--iw-primary-light); }
+.header__hamburger:focus-visible  { outline: none; box-shadow: var(--iw-focus-ring); }
+
+/* Icono hamburguesa: morado sobre blanco → sin fondo extra */
+.header__hamburger-icon {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+
+/* Menú móvil */
+.header__mobile-nav {
+  display: none;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 1rem;
+  border-top: 1px solid var(--iw-border);
+}
+
+.header__mobile-nav--open { display: flex; }
+
+.header__mobile-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--iw-radius-sm);
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-medium);
+  color: var(--iw-text-muted);
+  text-decoration: none;
+  transition: background-color var(--iw-transition), color var(--iw-transition);
+}
+
+.header__mobile-link:hover         { background-color: var(--iw-primary-light); color: var(--iw-primary); }
+.header__mobile-link:focus-visible  { outline: none; box-shadow: var(--iw-focus-ring); }
+
+/* Iconos del menú móvil: morado sobre blanco → sin fondo extra */
+.header__mobile-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .header__nav       { display: none; }
+  .header__hamburger { display: flex; }
+}
+
+@media (max-width: 600px) {
+  .header__inner    { padding-inline: 1rem; gap: 0.75rem; }
+  .header__icon-btn { display: none; }
+}
+
+@media (max-width: 360px) {
+  .header__company { display: none; }
+}
