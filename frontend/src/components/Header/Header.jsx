@@ -17,26 +17,29 @@ const dropdownItems = [
   { label: "Configuración",  icon: ICONS8("settings"), href: "#" },
 ];
 
+/**
+ * Header — consume el modelo User del backend:
+ *  user.name  (antes nombre)
+ *  user.email
+ *  user.role  (antes rol) → valores: employee | admin | superadmin
+ */
 export default function Header({
-  user = { name: "Olatz González", role: "Empleada" },
+  user = null,
   companyName = "IsWorking",
   navLinks = defaultNavLinks,
 }) {
   const [menuOpen, setMenuOpen]       = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const initials = user?.name
+    ? user.name.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("")
+    : "?";
 
   return (
     <header className="header">
       <div className="header__inner">
 
-        {/* Logo — al hacer clic vuelve a Inicio */}
+        {/* Logo */}
         <a href="/" className="header__brand" aria-label="Ir a inicio">
           <span className="header__logo-icon" aria-hidden="true">IW</span>
           <span className="header__company">{companyName}</span>
@@ -47,12 +50,7 @@ export default function Header({
           {navLinks.map((link) => (
             <a key={link.label} href={link.href} className="header__nav-link">
               {link.icon && (
-                <img
-                  src={link.icon}
-                  alt=""
-                  aria-hidden="true"
-                  className="header__nav-icon"
-                />
+                <img src={link.icon} alt="" aria-hidden="true" className="header__nav-icon" />
               )}
               {link.label}
             </a>
@@ -64,12 +62,7 @@ export default function Header({
 
           {/* Notificaciones */}
           <button className="header__icon-btn" aria-label="Ver notificaciones (3 sin leer)">
-            <img
-              src={ICONS8("alarm")}
-              alt=""
-              aria-hidden="true"
-              className="header__icon-img"
-            />
+            <img src={ICONS8("alarm")} alt="" aria-hidden="true" className="header__icon-img" />
             <span className="header__badge" aria-hidden="true">3</span>
           </button>
 
@@ -82,7 +75,7 @@ export default function Header({
               aria-expanded={profileOpen}
               aria-haspopup="menu"
             >
-              {user.avatar
+              {user?.avatar
                 ? <img src={user.avatar} alt={user.name} className="header__avatar-img" />
                 : <span aria-hidden="true">{initials}</span>
               }
@@ -91,8 +84,8 @@ export default function Header({
             {profileOpen && (
               <div className="header__dropdown" role="menu">
                 <div className="header__dropdown-user">
-                  <strong className="header__dropdown-name">{user.name}</strong>
-                  <span className="header__dropdown-role">{user.role}</span>
+                  <strong className="header__dropdown-name">{user?.name ?? "Usuario"}</strong>
+                  <span className="header__dropdown-role">{user?.role ?? ""}</span>
                 </div>
                 <hr className="header__dropdown-divider" />
                 {dropdownItems.map((item) => (
