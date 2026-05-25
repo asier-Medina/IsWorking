@@ -67,17 +67,21 @@ const exportToPDF = (sectionId, filename) => {
 };
 
 /* Card reutilizable para empresa y usuario */
-function EntityCard({ entity, type, onToggle, loading }) {
+function EntityCard({ entity, type, onToggle, loading, companyName }) {
   const isActive    = entity.active !== false;
   const logoSrc     = entity.logo ?? entity.avatar ?? null;
   const displayName = entity.name ?? "Sin nombre";
 
-  /* Subtítulo: email para usuarios, sector para empresas */
+  /*
+   * Subtítulo:
+   *  - Usuarios → nombre de la empresa a la que pertenecen
+   *  - Empresas → sector o email si lo hubiera
+   */
   const subtitle = type === "usuario"
-    ? entity.email
+    ? companyName ?? `Empresa #${entity.company_id}`
     : entity.sector ?? entity.email ?? null;
 
-  /* Rol traducido (solo en usuarios) */
+  /* Rol (solo en usuarios) */
   const roleLabel = type === "usuario" ? entity.role : null;
 
   const initials = displayName
@@ -140,7 +144,12 @@ function DashboardSection({
   loadingItem, isLoading, error,
   onToggle, onCreateNew,
   csvFilename, pdfFilename,
+  empresas = [],   /* solo se usa en la sección de usuarios */
 }) {
+  /* Mapa id → nombre de empresa para búsqueda O(1) */
+  const empresaMap = Object.fromEntries(
+    empresas.map((e) => [e.id, e.name ?? e.nombre ?? `Empresa #${e.id}`])
+  );
   return (
     <section className="ad-section" id={id} aria-labelledby={`${id}-title`}>
 
@@ -191,6 +200,7 @@ function DashboardSection({
                 type={type}
                 onToggle={onToggle}
                 loading={loadingItem}
+                companyName={type === "usuario" ? empresaMap[item.company_id] : undefined}
               />
             ))
           )}
@@ -282,6 +292,7 @@ export default function AdminDashboard() {
         onToggle={toggleUsuario}
         onCreateNew={() => alert("Crear usuario — pendiente de implementar")}
         csvFilename="usuarios" pdfFilename="Usuarios"
+        empresas={empresas}
       />
     </div>
   );
