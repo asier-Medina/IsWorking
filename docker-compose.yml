@@ -36,24 +36,11 @@ services:
     networks:
       - IsWorking_net
 
-  mongo:
-    image: mongo:7
-    container_name: IsWorking_mongo
-    restart: always
-    ports:
-      - "27018:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - IsWorking_net
-
-  # CAMBIO: el servicio "app" pasa a llamarse "backend"
-  # porque el proyecto ahora tiene frontend y backend separados.
-  backend:
+  app:
     build:
-      context: ./backend    # CAMBIO: antes era "." (raíz). Ahora apunta a la carpeta ./backend
+      context: .
       dockerfile: Dockerfile
-    container_name: IsWorking_backend   # CAMBIO: antes era IsWorking_app
+    container_name: IsWorking_app
     restart: always
     environment:
       NODE_ENV: development
@@ -69,30 +56,19 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      mongo:
-        condition: service_started  # CAMBIO: añadido para que el backend espere a mongo antes de arrancar
     volumes:
-      - ./backend/src:/usr/src/app/src  # CAMBIO: antes era ./src. Ahora apunta a ./backend/src
+      - ./src:/usr/src/app/src
     networks:
       - IsWorking_net
 
-  # NUEVO: servicio de frontend.
-  # Construye la aplicación Next.js que está en la carpeta ./frontend.
-  # Disponible en http://localhost:3001 para no colisionar con el backend (3000).
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: IsWorking_frontend
+  mongo:
+    image: mongo:7
+    container_name: IsWorking_mongo
     restart: always
-    environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3000
     ports:
-      - "5173:5173"   # antes era 3001:3000
-    depends_on:
-      - backend
+      - "27018:27017"
     volumes:
-      - ./frontend/src:/app/src
+      - mongo-data:/data/db
     networks:
       - IsWorking_net
 
