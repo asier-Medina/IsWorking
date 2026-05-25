@@ -84,17 +84,17 @@ INSERT INTO users (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
   -- Superadmin
   (1, 'Super Admin', 'super@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
    'superadmin', true),
 
   -- Admin empresa 1
   (1, 'Laura Admin', 'admin@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
    'admin', true),
 
   -- Empleado empresa 1
   (1, 'Jon Empleado', 'empleado@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
    'employee', false);
 
 -- ========================
