@@ -1,7 +1,19 @@
 import { useState, useEffect, useRef } from "react";
 import "./Clock.css";
 
+/**
+ * Clock — componente de fichaje conectado al backend.
+ *
+ * Endpoint: POST /api/records
+ * Auth:     Authorization: Bearer <token> (token en localStorage)
+ * Tipos:    entry | break_start | break_end | exit
+ *
+ * Props:
+ *  - mode:     "office" | "remote"
+ *  - onRecord: (record) => void  callback con la respuesta del backend
+ */
 
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/ffffff/${name}.png`;
@@ -38,21 +50,27 @@ const getLocation = () =>
   });
 
 const postRecord = async (type, mode = "office") => {
-  const location = await getLocation()
-  const response = await fetch(`/api/records`, {  // ← solo /api/records
-    method:      "POST",
-    credentials: "include",
-    headers:     { "Content-Type": "application/json" },
-    body: JSON.stringify({ type, mode, ...(location ?? {}) }),
-  })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}))
-    throw new Error(error.message ?? `Error ${response.status}`)
-  }
-  return response.json()
-}
+  const token    = localStorage.getItem("token");
+  const location = await getLocation();
 
-export default function Clock({ mode = "office" }) {
+  const response = await fetch(`${API_URL}/api/records`, {
+    method:  "POST",
+    headers: {
+      "Content-Type":  "application/json",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    },
+    body: JSON.stringify({ type, mode, ...(location ?? {}) }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message ?? `Error ${response.status}`);
+  }
+
+  return response.json();
+};
+
+export default function Clock({ mode = "office", onRecord }) {
   const [status, setStatus]             = useState("idle");
   const [workSeconds, setWorkSeconds]   = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
@@ -74,12 +92,13 @@ export default function Clock({ mode = "office" }) {
     setLoading(true);
     setError(null);
     try {
-      await postRecord(type, mode);
+      const record = await postRecord(type, mode);
       setStatus(nextStatus);
       if (nextStatus === "idle") {
         setWorkSeconds(0);
         setBreakSeconds(0);
       }
+      onRecord?.(record);    /* notifica a App.jsx con la respuesta del backend */
     } catch (err) {
       setError(err.message);
     } finally {
@@ -138,36 +157,60 @@ export default function Clock({ mode = "office" }) {
         </div>
       )}
 
-      {error && <p className="clock__error" role="alert">{error}</p>}
+      {error && (
+        <p className="clock__error" role="alert">{error}</p>
+      )}
 
       <div className="clock__actions">
+
         {status === "idle" && (
-          <button className="clock__btn clock__btn--entry" onClick={handleEntry} disabled={loading} aria-label="Registrar entrada">
+          <button
+            className="clock__btn clock__btn--entry"
+            onClick={handleEntry}
+            disabled={loading}
+            aria-label="Registrar entrada"
+          >
             <img src={ICONS.enter} alt="" aria-hidden="true" className="clock__btn-icon" />
             {loading ? "Registrando..." : "Fichar entrada"}
           </button>
         )}
 
         {(status === "working" || status === "break") && (
-          <button className="clock__btn clock__btn--exit" onClick={handleExit} disabled={loading} aria-label="Registrar salida">
+          <button
+            className="clock__btn clock__btn--exit"
+            onClick={handleExit}
+            disabled={loading}
+            aria-label="Registrar salida"
+          >
             <img src={ICONS.exit} alt="" aria-hidden="true" className="clock__btn-icon" />
             {loading ? "Registrando..." : "Fichar salida"}
           </button>
         )}
 
         {status === "working" && (
-          <button className="clock__btn clock__btn--break-start" onClick={handleBreakStart} disabled={loading} aria-label="Iniciar descanso">
+          <button
+            className="clock__btn clock__btn--break-start"
+            onClick={handleBreakStart}
+            disabled={loading}
+            aria-label="Iniciar descanso"
+          >
             <img src={ICONS.pause} alt="" aria-hidden="true" className="clock__btn-icon" />
             {loading ? "Registrando..." : "Iniciar descanso"}
           </button>
         )}
 
         {status === "break" && (
-          <button className="clock__btn clock__btn--break-end" onClick={handleBreakEnd} disabled={loading} aria-label="Finalizar descanso">
+          <button
+            className="clock__btn clock__btn--break-end"
+            onClick={handleBreakEnd}
+            disabled={loading}
+            aria-label="Finalizar descanso"
+          >
             <img src={ICONS.play} alt="" aria-hidden="true" className="clock__btn-icon" />
             {loading ? "Registrando..." : "Finalizar descanso"}
           </button>
         )}
+
       </div>
 
       {status !== "idle" && (
