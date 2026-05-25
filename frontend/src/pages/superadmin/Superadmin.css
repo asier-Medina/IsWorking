@@ -1,4 +1,8 @@
-/* Reset */
+/* superadmin.css — consume variables de index.css
+   Todos los valores usan var(--iw-*) del sistema de diseño global.
+*/
+
+/* Reset de ámbito */
 .sa-page *,
 .sa-page *::before,
 .sa-page *::after {
@@ -58,7 +62,7 @@
   color: var(--iw-danger);
   padding: 0.75rem 1rem;
   background-color: var(--iw-danger-light);
-  border: 1px solid #fecaca;
+  border: 1px solid var(--iw-danger);
   border-radius: var(--iw-radius-sm);
 }
 
@@ -85,16 +89,25 @@
   box-shadow: var(--iw-shadow-md);
 }
 
-.sa-card--active   { background-color: #eff6ff; border-color: #bfdbfe; }
-.sa-card--inactive { background-color: #f0fdf4; border-color: #bbf7d0; }
+/* Activo → fondo info azul (--iw-info-*) */
+.sa-card--active {
+  background-color: var(--iw-info-bg);
+  border-color: var(--iw-info-border);
+}
+
+/* Inactivo → fondo success verde claro (--iw-success-light) */
+.sa-card--inactive {
+  background-color: var(--iw-success-light);
+  border-color: var(--iw-success-border);
+}
 
 /* Logo / avatar */
 .sa-card__logo {
   width: 56px;
   height: 56px;
   border-radius: var(--iw-radius-sm);
-  border: 1.5px solid rgba(0, 0, 0, 0.08);
-  background-color: rgba(255, 255, 255, 0.7);
+  border: 1.5px solid var(--iw-border);
+  background-color: var(--iw-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -154,8 +167,17 @@
   flex-shrink: 0;
 }
 
-.sa-card__badge--active   { background-color: #bbf7d0; color: #14532d; border: 1px solid #86efac; }
-.sa-card__badge--inactive { background-color: #e2e0f0; color: #3a3850; border: 1px solid #c5bff5; }
+.sa-card__badge--active {
+  background-color: var(--iw-success-mid);
+  color: var(--iw-success-text);
+  border: 1px solid var(--iw-success-border);
+}
+
+.sa-card__badge--inactive {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-text-subtle);
+  border: 1px solid var(--iw-primary-border);
+}
 
 /* Botón de acción */
 .sa-card__actions { flex-shrink: 0; }
@@ -172,21 +194,21 @@
   transition: background-color var(--iw-transition), opacity var(--iw-transition), transform 0.1s;
 }
 
-.sa-card__btn:disabled          { opacity: 0.6; cursor: not-allowed; }
+.sa-card__btn:disabled              { opacity: 0.6; cursor: not-allowed; }
 .sa-card__btn:not(:disabled):active { transform: scale(0.97); }
-.sa-card__btn:focus-visible     { outline: none; box-shadow: var(--iw-focus-ring); }
+.sa-card__btn:focus-visible         { outline: none; box-shadow: var(--iw-focus-ring); }
 
-.sa-card__btn--deactivate               { background-color: var(--iw-danger); color: #ffffff; }
+.sa-card__btn--deactivate                      { background-color: var(--iw-danger);        color: #ffffff; }
 .sa-card__btn--deactivate:not(:disabled):hover { background-color: var(--iw-danger-hover); }
 
-.sa-card__btn--activate                 { background-color: #15803d; color: #ffffff; }
-.sa-card__btn--activate:not(:disabled):hover   { background-color: #166534; }
+.sa-card__btn--activate                        { background-color: var(--iw-success);       color: #ffffff; }
+.sa-card__btn--activate:not(:disabled):hover   { background-color: var(--iw-success-hover); }
 
 /* RESPONSIVE */
 @media (max-width: 700px) {
-  .sa-header      { flex-direction: column; align-items: flex-start; }
-  .sa-actions     { margin-left: 0; width: 100%; }
-  .sa-action-btn  { flex: 1; justify-content: center; }
+  .sa-header     { flex-direction: column; align-items: flex-start; }
+  .sa-actions    { margin-left: 0; width: 100%; }
+  .sa-action-btn { flex: 1; justify-content: center; }
 }
 
 @media (max-width: 560px) {
@@ -198,7 +220,7 @@
   .sa-card__badge   { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
   .sa-card__info    { grid-column: 2; grid-row: 1; align-self: start; padding-right: 5rem; }
   .sa-card__actions { grid-column: 1 / -1; grid-row: 2; }
+  .sa-card__btn     { width: 100%; padding: 0.5rem; text-align: center; }
 
-  .sa-card__btn { width: 100%; padding: 0.5rem; text-align: center; }
-  .sa-page      { padding: 1.25rem 1rem 3rem; gap: 1.25rem; }
+  .sa-page { padding: 1.25rem 1rem 3rem; gap: 1.25rem; }
 }
