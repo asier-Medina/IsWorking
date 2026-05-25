@@ -77,24 +77,24 @@ VALUES
 -- ========================
 -- USERS
 -- Todos con contraseña: isworking123
--- Hash: $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+-- Hash: $2b$10$lUJ0le4Lvv7HFpbgKKlPcuBpoTb6xLOAZ7Ojuqcec3EUM9UDN3Ery
 -- ========================
 
 INSERT INTO users (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
   -- Superadmin
   (1, 'Super Admin', 'super@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$lUJ0le4Lvv7HFpbgKKlPcuBpoTb6xLOAZ7Ojuqcec3EUM9UDN3Ery',
    'superadmin', true),
 
   -- Admin empresa 1
   (1, 'Laura Admin', 'admin@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$lUJ0le4Lvv7HFpbgKKlPcuBpoTb6xLOAZ7Ojuqcec3EUM9UDN3Ery',
    'admin', true),
 
   -- Empleado empresa 1
   (1, 'Jon Empleado', 'empleado@isworking.com',
-   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   '$2b$10$lUJ0le4Lvv7HFpbgKKlPcuBpoTb6xLOAZ7Ojuqcec3EUM9UDN3Ery',
    'employee', false);
 
 -- ========================
