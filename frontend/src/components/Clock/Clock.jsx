@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import "./Clock.css";
 
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
 
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/ffffff/${name}.png`;
@@ -38,19 +38,19 @@ const getLocation = () =>
   });
 
 const postRecord = async (type, mode = "office") => {
-  const location = await getLocation();
-  const response = await fetch(`${API_URL}/api/records`, {
+  const location = await getLocation()
+  const response = await fetch(`/api/records`, {  // ← solo /api/records
     method:      "POST",
     credentials: "include",
     headers:     { "Content-Type": "application/json" },
     body: JSON.stringify({ type, mode, ...(location ?? {}) }),
-  });
+  })
   if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message ?? `Error ${response.status}`);
+    const error = await response.json().catch(() => ({}))
+    throw new Error(error.message ?? `Error ${response.status}`)
   }
-  return response.json();
-};
+  return response.json()
+}
 
 export default function Clock({ mode = "office" }) {
   const [status, setStatus]             = useState("idle");
