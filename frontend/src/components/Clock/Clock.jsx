@@ -121,7 +121,20 @@ const computeElapsedSeconds = (todayRecords = []) => {
   return { work: Math.floor(work), break: Math.floor(breakTime) };
 };
 
-export default function Clock({ mode = "office", onRecord }) {
+export default function Clock({ mode = "office", initialStatus = null }) {
+
+  const mapTypeToStatus = (type) => {
+    if (!type) return "idle"
+    if (type === "entry" || type === "break_end") return "working"
+    if (type === "break_start") return "break"
+    return "idle"
+  }
+
+  const [status, setStatus] = useState(
+    initialStatus?.lastRecord
+      ? mapTypeToStatus(initialStatus.lastRecord.type)
+      : "idle"
+  )
   const [status, setStatus] = useState("idle");
   const [workSeconds, setWorkSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
