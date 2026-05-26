@@ -46,7 +46,6 @@ export default function ChangePassword({ isOpen, onClose }) {
                 setSuccess(false);
             }, 2000);
         } catch (err) {
-            console.error(err);
             setError(err.response?.data?.message || "Error al cambiar la contraseña. Inténtalo de nuevo.");
         } finally {
             setLoading(false);

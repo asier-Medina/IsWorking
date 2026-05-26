@@ -2,7 +2,6 @@ import { Sequelize } from 'sequelize'
 import dotenv from 'dotenv'
 
 dotenv.config()
-console.log('PUERTO DB:', process.env.DB_PORT)
 
 /*
    Instancia de Sequelize configurada con las variables de entorno.

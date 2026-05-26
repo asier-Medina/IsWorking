@@ -48,14 +48,10 @@ app.use(errorHandler)
 const start = async () => {
   try {
     await sequelize.authenticate()
-    console.log('PostgreSQL conectado')
-
     await connectMongo()
-    console.log('MongoDB conectado')
 
-    app.listen(process.env.PORT || 3000, () =>
-      console.log(`Servidor en puerto ${process.env.PORT || 3000}`)
-    )
+    const port = process.env.PORT || 3000
+    app.listen(port, () => console.log(`Servidor listo en http://localhost:${port}`))
   } catch (error) {
     console.error('Error arrancando servidor:', error.message)
     process.exit(1)

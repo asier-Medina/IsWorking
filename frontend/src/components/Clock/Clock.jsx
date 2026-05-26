@@ -37,34 +37,18 @@ const formatTime = (s) =>
 const getLocation = () =>
   new Promise((resolve) => {
     if (!navigator.geolocation) {
-      console.warn("⚠️ Geolocalización no soportada en este navegador o contexto no seguro.");
       return resolve(null);
     }
 
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        console.log("GPS Obtenido con éxito:", coords);
         resolve({
           latitude: coords.latitude,
           longitude: coords.longitude,
           accuracy: coords.accuracy,
         });
       },
-      (error) => {
-        console.error(" Error de Geolocalización código:", error.code);
-        switch (error.code) {
-          case error.PERMISSION_DENIED:
-            console.error(" Motivo: El usuario denegó el permiso de ubicación.");
-            break;
-          case error.POSITION_UNAVAILABLE:
-            console.error("Motivo: La ubicación no está disponible (¿sin internet/red?).");
-            break;
-          case error.TIMEOUT:
-            console.error(" Motivo: Se agotó el tiempo de espera (timeout).");
-            break;
-          default:
-            console.error(" Motivo desconocido:", error.message);
-        }
+      () => {
         resolve(null);
       },
       {
