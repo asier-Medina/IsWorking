@@ -1,6 +1,4 @@
-/* superadmin.css — consume variables de index.css
-   Todos los valores usan var(--iw-*) del sistema de diseño global.
-*/
+
 
 /* Reset de ámbito */
 .sa-page *,
@@ -223,4 +221,75 @@
   .sa-card__btn     { width: 100%; padding: 0.5rem; text-align: center; }
 
   .sa-page { padding: 1.25rem 1rem 3rem; gap: 1.25rem; }
+}
+
+/* ── Layout superadmin ── */
+.sa-layout {
+  min-height: 100vh;
+  display: flex;
+  background: var(--iw-bg);
+}
+
+.sa-sidebar {
+  width: 250px;
+  background: #0f172a;
+  color: white;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  flex-shrink: 0;
+}
+
+.sa-sidebar__brand h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #ffffff;
+}
+
+.sa-sidebar__brand p {
+  margin: 4px 0 0;
+  color: #818cf8;
+  font-size: 0.9rem;
+}
+
+.sa-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sa-sidebar__nav a {
+  color: #d1d5db;
+  text-decoration: none;
+  padding: 11px 12px;
+  border-radius: 10px;
+  transition: 0.2s;
+  font-size: var(--iw-font-size-md);
+}
+
+.sa-sidebar__nav a:hover { background: #1e293b; color: white; }
+.sa-sidebar__nav a.active { background: var(--iw-primary); color: white; }
+
+.sa-logout {
+  margin-top: auto;
+  border: none;
+  padding: 11px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  background: var(--iw-danger);
+  color: white;
+  font-weight: 600;
+  font-family: var(--iw-font-base);
+}
+
+.sa-content {
+  flex: 1;
+  padding: 32px;
+  overflow-x: auto;
+}
+
+@media (max-width: 800px) {
+  .sa-layout { flex-direction: column; }
+  .sa-sidebar { width: auto; }
 }
