@@ -1,14 +1,15 @@
-import { Op }       from 'sequelize'
-import TimeRecord   from '../models/postgres/TimeRecord.js'
-import User         from '../models/postgres/User.js'
-import logsService  from './logs.service.js'
+import { Op } from 'sequelize'
+import TimeRecord from '../models/postgres/TimeRecord.js'
+import User from '../models/postgres/User.js'
+import Schedule from '../models/postgres/Schedule.js'
+import logsService from './logs.service.js'
 
 const NEXT_VALID_TYPE = {
-  null:        ['entry'],
-  entry:       ['break_start', 'exit'],
+  null: ['entry'],
+  entry: ['break_start', 'exit'],
   break_start: ['break_end'],
-  break_end:   ['exit'],
-  exit:        ['entry']
+  break_end: ['exit'],
+  exit: ['entry']
 }
 
 const getAll = async (userId, role, companyId) => {
@@ -42,7 +43,7 @@ const getById = async (id, userId, role) => {
   return record
 }
 
-const create = async ({ userId, type, mode, latitude, longitude, accuracy, scheduleId }) => {
+const create = async ({ userId, type, mode, latitude, longitude, accuracy }) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -51,7 +52,7 @@ const create = async ({ userId, type, mode, latitude, longitude, accuracy, sched
     order: [['timestamp', 'DESC']]
   })
 
-  const lastType   = last?.type || null
+  const lastType = last?.type || null
   const validTypes = NEXT_VALID_TYPE[lastType]
 
   if (!validTypes.includes(type)) {
@@ -62,21 +63,32 @@ const create = async ({ userId, type, mode, latitude, longitude, accuracy, sched
     throw error
   }
 
+  const hoyLocal = new Date().toISOString().split('T')[0]
+  const scheduleHoy = await Schedule.findOne({
+    where: {
+      user_id: userId,
+      work_date: hoyLocal
+    }
+  })
+
+  const scheduleId = scheduleHoy ? scheduleHoy.id : null
+
+
   const record = await TimeRecord.create({
-    user_id:     userId,
+    user_id: userId,
     type,
     mode,
     latitude,
     longitude,
     accuracy,
     schedule_id: scheduleId || null,
-    timestamp:   new Date(),
+    timestamp: new Date(),
   })
 
   try {
     await logsService.createRecordLog({
       record_id: record.id,
-      user_id:   userId,
+      user_id: userId,
       type, mode, latitude, longitude, accuracy,
       timestamp: record.timestamp
     })
@@ -120,14 +132,14 @@ const getStatus = async (userId) => {
 
   const todayRecords = await TimeRecord.findAll({
     where: {
-      user_id:   userId,
+      user_id: userId,
       timestamp: { [Op.gte]: today }
     },
     order: [['timestamp', 'ASC']]
   })
 
   const lastRecord = todayRecords.at(-1) || null
-  const lastType   = lastRecord?.type || null
+  const lastType = lastRecord?.type || null
 
   return {
     lastRecord,

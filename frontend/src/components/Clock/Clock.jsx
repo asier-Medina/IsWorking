@@ -18,33 +18,60 @@ const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/ffffff/${name}.png`;
 
 const ICONS = {
-  enter:  ICONS8("enter-2"),
-  exit:   ICONS8("exit"),
-  pause:  ICONS8("pause-button"),
-  play:   ICONS8("play-button-circled"),
-  clock:  ICONS8("clock", 32),
+  enter: ICONS8("enter-2"),
+  exit: ICONS8("exit"),
+  pause: ICONS8("pause-button"),
+  play: ICONS8("play-button-circled"),
+  clock: ICONS8("clock", 32),
   coffee: ICONS8("coffee-to-go"),
 };
 
-const WORK_DAY_SECONDS   = 8 * 60 * 60;
-const RING_RADIUS        = 70;
+const WORK_DAY_SECONDS = 8 * 60 * 60;
+const RING_RADIUS = 70;
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
 
-const pad        = (n) => String(n).padStart(2, "0");
+const pad = (n) => String(n).padStart(2, "0");
 const formatTime = (s) =>
   `${pad(Math.floor(s / 3600))}:${pad(Math.floor((s % 3600) / 60))}:${pad(s % 60)}`;
 
 const getLocation = () =>
   new Promise((resolve) => {
-    if (!navigator.geolocation) return resolve(null);
+    if (!navigator.geolocation) {
+      console.warn("⚠️ Geolocalización no soportada en este navegador o contexto no seguro.");
+      return resolve(null);
+    }
+
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => resolve({
-        latitude:  coords.latitude,
-        longitude: coords.longitude,
-        accuracy:  coords.accuracy,
-      }),
-      () => resolve(null),
-      { timeout: 5000 }
+      ({ coords }) => {
+        console.log("GPS Obtenido con éxito:", coords);
+        resolve({
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          accuracy: coords.accuracy,
+        });
+      },
+      (error) => {
+        console.error(" Error de Geolocalización código:", error.code);
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            console.error(" Motivo: El usuario denegó el permiso de ubicación.");
+            break;
+          case error.POSITION_UNAVAILABLE:
+            console.error("Motivo: La ubicación no está disponible (¿sin internet/red?).");
+            break;
+          case error.TIMEOUT:
+            console.error(" Motivo: Se agotó el tiempo de espera (timeout).");
+            break;
+          default:
+            console.error(" Motivo desconocido:", error.message);
+        }
+        resolve(null);
+      },
+      {
+        enableHighAccuracy: false,
+        timeout: 15000,
+        maximumAge: 60000
+      }
     );
   });
 
@@ -111,13 +138,13 @@ const computeElapsedSeconds = (todayRecords = []) => {
 };
 
 export default function Clock({ mode = "office", onRecord }) {
-  const [status, setStatus]             = useState("idle");
-  const [workSeconds, setWorkSeconds]   = useState(0);
+  const [status, setStatus] = useState("idle");
+  const [workSeconds, setWorkSeconds] = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
-  const [loading, setLoading]           = useState(false);
+  const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [error, setError]               = useState(null);
-  const intervalRef                     = useRef(null);
+  const [error, setError] = useState(null);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     const loadStatus = async () => {
@@ -165,18 +192,18 @@ export default function Clock({ mode = "office", onRecord }) {
     }
   };
 
-  const handleEntry      = () => handleRecord("entry",       "working");
-  const handleExit       = () => handleRecord("exit",        "idle");
+  const handleEntry = () => handleRecord("entry", "working");
+  const handleExit = () => handleRecord("exit", "idle");
   const handleBreakStart = () => handleRecord("break_start", "break");
-  const handleBreakEnd   = () => handleRecord("break_end",   "working");
+  const handleBreakEnd = () => handleRecord("break_end", "working");
 
-  const progress   = Math.min(workSeconds / WORK_DAY_SECONDS, 1);
+  const progress = Math.min(workSeconds / WORK_DAY_SECONDS, 1);
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   const STATE = {
-    idle:    { label: "Sin fichar",  dotClass: "clock__dot--idle",    ringClass: "clock__ring--idle"    },
-    working: { label: "Trabajando",  dotClass: "clock__dot--working", ringClass: "clock__ring--working" },
-    break:   { label: "En descanso", dotClass: "clock__dot--break",   ringClass: "clock__ring--break"   },
+    idle: { label: "Sin fichar", dotClass: "clock__dot--idle", ringClass: "clock__ring--idle" },
+    working: { label: "Trabajando", dotClass: "clock__dot--working", ringClass: "clock__ring--working" },
+    break: { label: "En descanso", dotClass: "clock__dot--break", ringClass: "clock__ring--break" },
   };
   const current = STATE[status];
 

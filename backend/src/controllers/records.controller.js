@@ -26,13 +26,14 @@ const getById = async (req, res, next) => {
 const create = async (req, res, next) => {
   try {
     const { id: userId } = req.user
-    const { type, mode, latitude, longitude, accuracy, scheduleId } = req.body
+    const { type, mode, latitude, longitude, accuracy } = req.body
 
     if (!type) return res.status(400).json({ error: 'El campo type es obligatorio' })
     if (!mode) return res.status(400).json({ error: 'El campo mode es obligatorio' })
 
+
     const record = await recordsService.create({
-      userId, type, mode, latitude, longitude, accuracy, scheduleId
+      userId, type, mode, latitude, longitude, accuracy
     })
     res.status(201).json(record)
   } catch (error) {
@@ -56,17 +57,17 @@ const sync = async (req, res, next) => {
     )
 
     const created = []
-    const errors  = []
+    const errors = []
 
     for (const r of sorted) {
       try {
         const record = await recordsService.create({
           userId,
-          type:      r.type,
-          mode:      r.mode,
-          latitude:  r.latitude,
+          type: r.type,
+          mode: r.mode,
+          latitude: r.latitude,
           longitude: r.longitude,
-          accuracy:  r.accuracy,
+          accuracy: r.accuracy,
           scheduleId: r.scheduleId || null
         })
         created.push(record.id)

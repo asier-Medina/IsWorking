@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Clock from "../../components/Clock/Clock.jsx"; // 🎯 Asegúrate de cuadrar tu ruta
+import Clock from "../../components/Clock/Clock.jsx";
 
 export default function Dashboard() {
     const storedUser = JSON.parse(localStorage.getItem("iw_user") || "{}");
