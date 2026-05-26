@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from "react";
+import api from "../../lib/api";
 import "./Clock.css";
 
 /**
  * Clock — componente de fichaje conectado al backend.
  *
  * Endpoint: POST /api/records
- * Auth:     Authorization: Bearer <token> (token en localStorage)
+ * Auth:     cookie httpOnly (access_token), vía cliente api + withCredentials
  * Tipos:    entry | break_start | break_end | exit
  *
  * Props:
  *  - mode:     "office" | "remote"
  *  - onRecord: (record) => void  callback con la respuesta del backend
  */
-
-const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
 
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/ffffff/${name}.png`;
@@ -50,24 +49,65 @@ const getLocation = () =>
   });
 
 const postRecord = async (type, mode = "office") => {
-  const token    = localStorage.getItem("token");
   const location = await getLocation();
+  const { data } = await api.post("/records", { type, mode, ...(location ?? {}) });
+  return data;
+};
 
-  const response = await fetch(`${API_URL}/api/records`, {
-    method:  "POST",
-    headers: {
-      "Content-Type":  "application/json",
-      ...(token && { Authorization: `Bearer ${token}` }),
-    },
-    body: JSON.stringify({ type, mode, ...(location ?? {}) }),
-  });
+/** Mapea el último fichaje del día al estado de la UI. */
+const lastTypeToUiStatus = (lastType) => {
+  if (!lastType || lastType === "exit") return "idle";
+  if (lastType === "break_start") return "break";
+  return "working";
+};
 
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    throw new Error(error.message ?? `Error ${response.status}`);
+/** Suma segundos trabajados/descanso a partir de los fichajes de hoy. */
+const computeElapsedSeconds = (todayRecords = []) => {
+  let work = 0;
+  let breakTime = 0;
+  let workStart = null;
+  let breakStart = null;
+  const now = Date.now();
+
+  for (const r of todayRecords) {
+    const t = new Date(r.timestamp).getTime();
+    switch (r.type) {
+      case "entry":
+        workStart = t;
+        breakStart = null;
+        break;
+      case "break_start":
+        if (workStart) work += (t - workStart) / 1000;
+        workStart = null;
+        breakStart = t;
+        break;
+      case "break_end":
+        if (breakStart) breakTime += (t - breakStart) / 1000;
+        breakStart = null;
+        workStart = t;
+        break;
+      case "exit":
+        if (workStart) work += (t - workStart) / 1000;
+        workStart = null;
+        if (breakStart) breakTime += (t - breakStart) / 1000;
+        breakStart = null;
+        break;
+      default:
+        break;
+    }
   }
 
-  return response.json();
+  const last = todayRecords.at(-1);
+  if (!last) return { work: 0, break: 0 };
+
+  const lastT = new Date(last.timestamp).getTime();
+  if (last.type === "entry" || last.type === "break_end") {
+    work += (now - lastT) / 1000;
+  } else if (last.type === "break_start") {
+    breakTime += (now - lastT) / 1000;
+  }
+
+  return { work: Math.floor(work), break: Math.floor(breakTime) };
 };
 
 export default function Clock({ mode = "office", onRecord }) {
@@ -75,8 +115,27 @@ export default function Clock({ mode = "office", onRecord }) {
   const [workSeconds, setWorkSeconds]   = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
   const [loading, setLoading]           = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError]               = useState(null);
   const intervalRef                     = useRef(null);
+
+  useEffect(() => {
+    const loadStatus = async () => {
+      try {
+        const { data } = await api.get("/records/status");
+        const lastType = data.lastRecord?.type ?? null;
+        setStatus(lastTypeToUiStatus(lastType));
+        const { work, break: brk } = computeElapsedSeconds(data.todayRecords);
+        setWorkSeconds(work);
+        setBreakSeconds(brk);
+      } catch {
+        setStatus("idle");
+      } finally {
+        setInitializing(false);
+      }
+    };
+    loadStatus();
+  }, []);
 
   useEffect(() => {
     clearInterval(intervalRef.current);
@@ -100,7 +159,7 @@ export default function Clock({ mode = "office", onRecord }) {
       }
       onRecord?.(record);    /* notifica a App.jsx con la respuesta del backend */
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message);
     } finally {
       setLoading(false);
     }
@@ -167,11 +226,11 @@ export default function Clock({ mode = "office", onRecord }) {
           <button
             className="clock__btn clock__btn--entry"
             onClick={handleEntry}
-            disabled={loading}
+            disabled={loading || initializing}
             aria-label="Registrar entrada"
           >
             <img src={ICONS.enter} alt="" aria-hidden="true" className="clock__btn-icon" />
-            {loading ? "Registrando..." : "Fichar entrada"}
+            {initializing ? "Cargando..." : loading ? "Registrando..." : "Fichar entrada"}
           </button>
         )}
 
@@ -179,11 +238,11 @@ export default function Clock({ mode = "office", onRecord }) {
           <button
             className="clock__btn clock__btn--exit"
             onClick={handleExit}
-            disabled={loading}
+            disabled={loading || initializing}
             aria-label="Registrar salida"
           >
             <img src={ICONS.exit} alt="" aria-hidden="true" className="clock__btn-icon" />
-            {loading ? "Registrando..." : "Fichar salida"}
+            {initializing ? "Cargando..." : loading ? "Registrando..." : "Fichar salida"}
           </button>
         )}
 
@@ -191,11 +250,11 @@ export default function Clock({ mode = "office", onRecord }) {
           <button
             className="clock__btn clock__btn--break-start"
             onClick={handleBreakStart}
-            disabled={loading}
+            disabled={loading || initializing}
             aria-label="Iniciar descanso"
           >
             <img src={ICONS.pause} alt="" aria-hidden="true" className="clock__btn-icon" />
-            {loading ? "Registrando..." : "Iniciar descanso"}
+            {initializing ? "Cargando..." : loading ? "Registrando..." : "Iniciar descanso"}
           </button>
         )}
 
@@ -203,11 +262,11 @@ export default function Clock({ mode = "office", onRecord }) {
           <button
             className="clock__btn clock__btn--break-end"
             onClick={handleBreakEnd}
-            disabled={loading}
+            disabled={loading || initializing}
             aria-label="Finalizar descanso"
           >
             <img src={ICONS.play} alt="" aria-hidden="true" className="clock__btn-icon" />
-            {loading ? "Registrando..." : "Finalizar descanso"}
+            {initializing ? "Cargando..." : loading ? "Registrando..." : "Finalizar descanso"}
           </button>
         )}
 

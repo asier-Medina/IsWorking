@@ -77,24 +77,24 @@ VALUES
 -- ========================
 -- USERS
 -- Todos con contraseña: isworking123
--- Hash: $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+-- Hash bcrypt (cost 10) de "isworking123"
 -- ========================
 
 INSERT INTO users (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
   -- Superadmin
   (1, 'Super Admin', 'super@isworking.com',
-   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
+   '$2b$10$7Wus1YJVYRvKEbAdI7BtvOj3tiTWEKFhKOqjpt/3xwzDnYvBa/IUG',
    'superadmin', true),
 
   -- Admin empresa 1
   (1, 'Laura Admin', 'admin@isworking.com',
-   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
+   '$2b$10$7Wus1YJVYRvKEbAdI7BtvOj3tiTWEKFhKOqjpt/3xwzDnYvBa/IUG',
    'admin', true),
 
   -- Empleado empresa 1
   (1, 'Jon Empleado', 'empleado@isworking.com',
-   '$2b$10$zY9WvVw6wH5K1M2r5zQvO.pG5K9X6M7hY1bV2c3d4e5f6g7h8i9j.',
+   '$2b$10$7Wus1YJVYRvKEbAdI7BtvOj3tiTWEKFhKOqjpt/3xwzDnYvBa/IUG',
    'employee', false);
 
 -- ========================

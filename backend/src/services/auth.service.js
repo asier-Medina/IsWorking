@@ -21,15 +21,16 @@ const generateRefreshToken = (user) =>
 
 // ── Register ────────────────────────────────────────────────
 export const register = async ({ name, email, password, company_id, role = 'employee' }) => {
+  const normalizedEmail = email?.trim().toLowerCase()
 
-  const exists = await User.findOne({ where: { email } })
+  const exists = await User.findOne({ where: { email: normalizedEmail } })
   if (exists) throw new Error('El email ya está registrado')
 
   const password_hash = await bcrypt.hash(password, 10)
 
   const user = await User.create({
     name,
-    email,
+    email: normalizedEmail,
     password_hash,
     company_id,
     role,
@@ -48,18 +49,14 @@ export const register = async ({ name, email, password, company_id, role = 'empl
 // ── Login ─────────────────────────────────────────────────
 
 export const login = async ({ email, password, ip, userAgent }) => {
-console.log('JWT_SECRET:', process.env.JWT_SECRET);
-console.log('JWT_EXPIRES_IN:', process.env.JWT_EXPIRES_IN);
-console.log('JWT_REFRESH_SECRET:', process.env.JWT_REFRESH_SECRET);
-console.log('JWT_REFRESH_EXPIRES_IN:', process.env.JWT_REFRESH_EXPIRES_IN);
-  const user = await User.findOne({ where: { email } })
-  console.log("he llegado hasta aqui 1")
+  const normalizedEmail = email?.trim().toLowerCase()
+  const user = await User.findOne({ where: { email: normalizedEmail } })
+
   // Usuario no existe o contraseña incorrecta — mismo mensaje por seguridad
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-        console.log("he llegado hasta aqui 2 condicional no se")
     await LogAuth.create({
       user_id: user?.id || 0,
-      email,
+      email: normalizedEmail,
       action: 'login_failed',
       ip,
       user_agent: userAgent,
@@ -69,9 +66,9 @@ console.log('JWT_REFRESH_EXPIRES_IN:', process.env.JWT_REFRESH_EXPIRES_IN);
 
     throw new Error('Credenciales incorrectas')
   }
- console.log("he llegado hasta aqui 2")
+
   if (!user.active) throw new Error('Usuario desactivado')
- console.log("he llegado hasta aqui 3 usuario activo no hay problema")
+
   const accessToken  = generateAccessToken(user)
   const refreshToken = generateRefreshToken(user)
 
@@ -83,8 +80,6 @@ console.log('JWT_REFRESH_EXPIRES_IN:', process.env.JWT_REFRESH_EXPIRES_IN);
     user_agent: userAgent,
     success:    true
   })
-
- console.log("he llegado hasta aqui 4 salgo de auth create");
 
   return {
     accessToken,
