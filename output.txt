@@ -103,7 +103,9 @@ EXPOSE 3000
 CMD ["npm", "run", "dev"]
 -----------------------
 ===== ./backend/init.sql =====
+-- Limpiar y recrear
 CREATE DATABASE isworking;
+
 CREATE TABLE IF NOT EXISTS companies (
   id               SERIAL PRIMARY KEY,
   name             VARCHAR(100) NOT NULL,
@@ -168,84 +170,64 @@ CREATE TABLE IF NOT EXISTS time_records (
   created_at  TIMESTAMP    DEFAULT NOW()
 );
 
--- =========================
+-- ========================
 -- COMPANIES
--- =========================
+-- ========================
 
-INSERT INTO companies 
-(name, timezone, office_latitude, office_longitude, office_radius_m)
+INSERT INTO companies (name, timezone, office_latitude, office_longitude, office_radius_m)
 VALUES
-('IsWorking Bilbao HQ', 'Europe/Madrid', 43.2630, -2.9350, 250),
-('IsWorking Madrid Office', 'Europe/Madrid', 40.4168, -3.7038, 200);
+  ('IsWorking HQ', 'Europe/Madrid', 43.2630, -2.9350, 250),
+  ('Cliente Ejemplo S.L.', 'Europe/Madrid', 40.4168, -3.7038, 200);
 
--- =========================
+-- ========================
 -- USERS
--- =========================
+-- Todos con contraseña: isworking123
+-- Hash: $2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi
+-- ========================
 
-INSERT INTO users
-(company_id, name, email, password_hash, role, remote_allowed)
+INSERT INTO users (company_id, name, email, password_hash, role, remote_allowed)
 VALUES
-(1, 'Asier Medina', 'asier@isworking.com', '12345', 'superadmin', true),
-(1, 'Laura Gómez', 'laura@isworking.com', '$2b$10$hash2', 'admin', true),
-(1, 'Jon Etxeberria', 'jon@isworking.com', '$2b$10$hash3', 'employee', false),
-(1, 'Marta Ruiz', 'marta@isworking.com', '$2b$10$hash4', 'employee', true),
+  -- Superadmin
+  (1, 'Super Admin', 'super@isworking.com',
+   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   'superadmin', true),
 
-(2, 'Carlos Pérez', 'carlos@isworking.com', '$2b$10$hash5', 'admin', true),
-(2, 'Ana Torres', 'ana@isworking.com', '$2b$10$hash6', 'employee', false);
+  -- Admin empresa 1
+  (1, 'Laura Admin', 'admin@isworking.com',
+   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   'admin', true),
 
--- =========================
+  -- Empleado empresa 1
+  (1, 'Jon Empleado', 'empleado@isworking.com',
+   '$2b$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi',
+   'employee', false);
+
+-- ========================
 -- SHIFT TEMPLATES
--- =========================
+-- ========================
 
-INSERT INTO shift_templates
-(company_id, name, type, start_time, end_time, break_start, break_end, has_break)
+INSERT INTO shift_templates (company_id, name, type, start_time, end_time, break_start, break_end, has_break)
 VALUES
-(1, 'Turno Mañana', 'morning', '08:00', '16:00', '12:00', '12:30', true),
-(1, 'Turno Tarde', 'afternoon', '14:00', '22:00', '18:00', '18:30', true),
-(1, 'Turno Partido', 'split', '09:00', '19:00', '14:00', '16:00', true),
+  (1, 'Turno Mañana',  'morning',   '08:00', '16:00', '12:00', '12:30', true),
+  (1, 'Turno Tarde',   'afternoon', '14:00', '22:00', '18:00', '18:30', true),
+  (1, 'Turno Partido', 'split',     '09:00', '19:00', '14:00', '16:00', true);
 
-(2, 'Mañana Madrid', 'morning', '07:00', '15:00', '11:00', '11:20', true),
-(2, 'Tarde Madrid', 'afternoon', '15:00', '23:00', '19:00', '19:20', true);
-
--- =========================
+-- ========================
 -- SCHEDULES
--- =========================
+-- ========================
 
-INSERT INTO schedules
-(user_id, shift_template_id, work_date, status, created_by)
+INSERT INTO schedules (user_id, shift_template_id, work_date, status, created_by)
 VALUES
-(3, 1, '2026-05-19', 'assigned', 2),
-(4, 2, '2026-05-19', 'confirmed', 2),
-(3, 1, '2026-05-20', 'assigned', 2),
-(4, 3, '2026-05-20', 'assigned', 2),
+  (3, 1, CURRENT_DATE, 'assigned', 2),
+  (3, 1, CURRENT_DATE + 1, 'assigned', 2);
 
-(6, 4, '2026-05-19', 'confirmed', 5);
+-- ========================
+-- TIME RECORDS (hoy — empleado ya ha fichado entrada)
+-- ========================
 
--- =========================
--- TIME RECORDS
--- =========================
-
-INSERT INTO time_records
-(user_id, schedule_id, type, mode, timestamp, latitude, longitude, accuracy)
+INSERT INTO time_records (user_id, schedule_id, type, mode, timestamp, latitude, longitude, accuracy)
 VALUES
-
--- Jon - oficina
-(3, 1, 'entry', 'office', '2026-05-19 07:58:10+02', 43.2632, -2.9352, 8.50),
-(3, 1, 'break_start', 'office', '2026-05-19 12:01:22+02', 43.2631, -2.9350, 6.20),
-(3, 1, 'break_end', 'office', '2026-05-19 12:29:55+02', 43.2631, -2.9351, 5.90),
-(3, 1, 'exit', 'office', '2026-05-19 16:03:41+02', 43.2633, -2.9353, 7.00),
-
--- Marta - remoto
-(4, 2, 'entry', 'remote', '2026-05-19 13:55:02+02', 43.2700, -2.9400, 15.30),
-(4, 2, 'break_start', 'remote', '2026-05-19 18:02:11+02', 43.2701, -2.9402, 12.80),
-(4, 2, 'break_end', 'remote', '2026-05-19 18:28:43+02', 43.2700, -2.9401, 11.40),
-(4, 2, 'exit', 'remote', '2026-05-19 22:01:17+02', 43.2702, -2.9400, 10.50),
-
--- Ana - Madrid
-(6, 5, 'entry', 'office', '2026-05-19 06:59:01+02', 40.4169, -3.7039, 4.80),
-(6, 5, 'break_start', 'office', '2026-05-19 11:03:15+02', 40.4170, -3.7040, 5.10),
-(6, 5, 'break_end', 'office', '2026-05-19 11:19:48+02', 40.4168, -3.7038, 4.50),
-(6, 5, 'exit', 'office', '2026-05-19 15:02:22+02', 40.4169, -3.7037, 4.70);
+  (3, 1, 'entry', 'office', NOW() - INTERVAL '2 hours', 43.2632, -2.9352, 8.5);
 -----------------------
 ===== ./backend/output.txt =====
 ===== ./docker-compose.yml =====
@@ -7481,6 +7463,113 @@ export const toggleStatus = async (id, companyId, activeStatus, adminId) => {
     return { id: user.id, name: user.name, active: activeStatus }
 }
 -----------------------
+===== ./docker-compose.yml =====
+services:
+
+  db:
+    image: postgres:16
+    container_name: IsWorking_db
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5440:5432"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - IsWorking_net
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: IsWorking_pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5051:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - IsWorking_net
+
+  mongo:
+    image: mongo:7
+    container_name: IsWorking_mongo
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - IsWorking_net
+
+  # CAMBIO: el servicio "app" pasa a llamarse "backend"
+  # porque el proyecto ahora tiene frontend y backend separados.
+  backend:
+    build:
+      context: ./backend    # CAMBIO: antes era "." (raíz). Ahora apunta a la carpeta ./backend
+      dockerfile: Dockerfile
+    container_name: IsWorking_backend   # CAMBIO: antes era IsWorking_app
+    restart: always
+    environment:
+      NODE_ENV: development
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      MONGO_URI: mongodb://mongo:27017/isworking
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+      mongo:
+        condition: service_started  # CAMBIO: añadido para que el backend espere a mongo antes de arrancar
+    volumes:
+      - ./backend/src:/usr/src/app/src  # CAMBIO: antes era ./src. Ahora apunta a ./backend/src
+    networks:
+      - IsWorking_net
+
+  # NUEVO: servicio de frontend.
+  # Construye la aplicación Next.js que está en la carpeta ./frontend.
+  # Disponible en http://localhost:3001 para no colisionar con el backend (3000).
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: IsWorking_frontend
+    restart: always
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:3000
+    ports:
+      - "5173:5173"   # antes era 3001:3000
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend/src:/app/src
+    networks:
+      - IsWorking_net
+
+volumes:
+  postgres-data:
+  mongo-data:
+
+networks:
+  IsWorking_net:
+    driver: bridge
+-----------------------
 ===== ./DOCS/diagramas/flujo.md =====
 Roles y flujos
 Empleado
@@ -11110,6 +11199,259 @@ export default function Clock({ mode = "office" }) {
 }
 
 -----------------------
+===== ./frontend/src/components/CompanyModal/CompanyModal.css =====
+/* Botón cancelar — variante específica de esta modal */
+.cm-btn--cancel {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+  border: none;
+}
+
+.cm-btn--cancel:not(:disabled):hover {
+  background-color: var(--iw-primary-border);
+}
+-----------------------
+===== ./frontend/src/components/CompanyModal/CompanyModal.jsx =====
+import { useState, useEffect, useRef } from "react";
+import "./CompanyModal.css";
+
+/**
+ * CompanyModal — modal para crear una empresa nueva.
+ *
+ * Clases de index.css usadas:
+ *  .iw-modal-overlay  .iw-modal-card   .iw-modal-header
+ *  .iw-modal-title    .iw-modal-close  .iw-modal-body
+ *  .iw-modal-footer   .iw-field        .iw-field-group
+ *  .iw-label          .iw-input        .iw-select
+ *  .iw-hint           .iw-form-error   .iw-btn
+ *
+ * Campos del modelo Company (backend):
+ *  name             STRING(100)   required
+ *  timezone         STRING(50)    default: 'Europe/Madrid'
+ *  office_latitude  DECIMAL(9,6)  optional
+ *  office_longitude DECIMAL(9,6)  optional
+ *  office_radius_m  INTEGER       default: 200
+ *
+ * Props:
+ *  isOpen:    boolean
+ *  onClose:   () => void
+ *  onSuccess: (company) => void
+ */
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+const TIMEZONES = [
+  "Europe/Madrid", "Europe/London", "Europe/Paris", "Europe/Berlin",
+  "Europe/Lisbon", "America/New_York", "America/Chicago",
+  "America/Los_Angeles", "America/Mexico_City", "America/Bogota",
+  "America/Buenos_Aires", "America/Sao_Paulo", "Asia/Tokyo",
+  "Asia/Shanghai", "Asia/Dubai", "Pacific/Auckland", "UTC",
+];
+
+const INITIAL = {
+  name: "", timezone: "Europe/Madrid",
+  office_latitude: "", office_longitude: "", office_radius_m: 200,
+};
+
+export default function CompanyModal({ isOpen, onClose, onSuccess }) {
+  const [form, setForm]       = useState(INITIAL);
+  const [error, setError]     = useState(null);
+  const [loading, setLoading] = useState(false);
+  const firstInputRef         = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setForm(INITIAL);
+    setError(null);
+    setTimeout(() => firstInputRef.current?.focus(), 50);
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((p) => ({ ...p, [name]: value }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    const token = localStorage.getItem("token");
+    const body  = {
+      name:     form.name.trim(),
+      timezone: form.timezone,
+      ...(form.office_latitude  !== "" && { office_latitude:  parseFloat(form.office_latitude) }),
+      ...(form.office_longitude !== "" && { office_longitude: parseFloat(form.office_longitude) }),
+      office_radius_m: parseInt(form.office_radius_m, 10) || 200,
+    };
+    try {
+      const res = await fetch(`${API_URL}/api/companies`, {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `Error ${res.status}`);
+      }
+      onSuccess(await res.json());
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      className="iw-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cm-title"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="iw-modal-card">
+
+        {/* Cabecera */}
+        <div className="iw-modal-header">
+          <h2 className="iw-modal-title" id="cm-title">Nueva empresa</h2>
+          <button className="iw-modal-close" onClick={onClose} aria-label="Cerrar modal">
+            ✕
+          </button>
+        </div>
+
+        {/* Formulario */}
+        <form className="iw-modal-body" onSubmit={handleSubmit} noValidate>
+
+          {/* Nombre */}
+          <div className="iw-field">
+            <label className="iw-label" htmlFor="cm-name">
+              Nombre de la empresa
+              <span className="iw-label__required" aria-hidden="true"> *</span>
+            </label>
+            <input
+              ref={firstInputRef}
+              id="cm-name"
+              className="iw-input"
+              type="text"
+              name="name"
+              placeholder="Ej: Acme S.L."
+              value={form.name}
+              onChange={handleChange}
+              required
+              maxLength={100}
+              autoComplete="organization"
+            />
+          </div>
+
+          {/* Zona horaria */}
+          <div className="iw-field">
+            <label className="iw-label" htmlFor="cm-timezone">Zona horaria</label>
+            <select
+              id="cm-timezone"
+              className="iw-input iw-select"
+              name="timezone"
+              value={form.timezone}
+              onChange={handleChange}
+            >
+              {TIMEZONES.map((tz) => (
+                <option key={tz} value={tz}>{tz}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Coordenadas GPS */}
+          <div className="iw-field-group">
+            <div className="iw-field">
+              <label className="iw-label" htmlFor="cm-lat">Latitud de oficina</label>
+              <input
+                id="cm-lat"
+                className="iw-input"
+                type="number"
+                name="office_latitude"
+                placeholder="Ej: 40.416775"
+                value={form.office_latitude}
+                onChange={handleChange}
+                step="0.000001"
+                min="-90"
+                max="90"
+              />
+            </div>
+            <div className="iw-field">
+              <label className="iw-label" htmlFor="cm-lng">Longitud de oficina</label>
+              <input
+                id="cm-lng"
+                className="iw-input"
+                type="number"
+                name="office_longitude"
+                placeholder="Ej: -3.703790"
+                value={form.office_longitude}
+                onChange={handleChange}
+                step="0.000001"
+                min="-180"
+                max="180"
+              />
+            </div>
+          </div>
+
+          {/* Radio de fichaje */}
+          <div className="iw-field">
+            <label className="iw-label" htmlFor="cm-radius">
+              Radio de fichaje (metros)
+            </label>
+            <input
+              id="cm-radius"
+              className="iw-input"
+              type="number"
+              name="office_radius_m"
+              placeholder="200"
+              value={form.office_radius_m}
+              onChange={handleChange}
+              min="10"
+              max="10000"
+              step="10"
+            />
+            <span className="iw-hint">
+              Distancia máxima desde la oficina para fichar en modo presencial.
+            </span>
+          </div>
+
+          {/* Error */}
+          {error && <p className="iw-form-error" role="alert">{error}</p>}
+
+          {/* Botones */}
+          <div className="iw-modal-footer">
+            <button
+              type="button"
+              className="iw-btn cm-btn--cancel"
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              className="iw-btn iw-btn--primary"
+              disabled={loading}
+            >
+              {loading ? "Creando..." : "Crear empresa"}
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  );
+}
+-----------------------
 ===== ./frontend/src/components/Footer/Footer.css =====
 /* Reset */
 .footer *,
@@ -11885,26 +12227,29 @@ const dropdownItems = [
   { label: "Configuración",  icon: ICONS8("settings"), href: "#" },
 ];
 
+/**
+ * Header — consume el modelo User del backend:
+ *  user.name  (antes nombre)
+ *  user.email
+ *  user.role  (antes rol) → valores: employee | admin | superadmin
+ */
 export default function Header({
-  user = { name: "Olatz González", role: "Empleada" },
+  user = null,
   companyName = "IsWorking",
   navLinks = defaultNavLinks,
 }) {
   const [menuOpen, setMenuOpen]       = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
-  const initials = user.name
-    .split(" ")
-    .map((n) => n[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
+  const initials = user?.name
+    ? user.name.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("")
+    : "?";
 
   return (
     <header className="header">
       <div className="header__inner">
 
-        {/* Logo — al hacer clic vuelve a Inicio */}
+        {/* Logo */}
         <a href="/" className="header__brand" aria-label="Ir a inicio">
           <span className="header__logo-icon" aria-hidden="true">IW</span>
           <span className="header__company">{companyName}</span>
@@ -11915,12 +12260,7 @@ export default function Header({
           {navLinks.map((link) => (
             <a key={link.label} href={link.href} className="header__nav-link">
               {link.icon && (
-                <img
-                  src={link.icon}
-                  alt=""
-                  aria-hidden="true"
-                  className="header__nav-icon"
-                />
+                <img src={link.icon} alt="" aria-hidden="true" className="header__nav-icon" />
               )}
               {link.label}
             </a>
@@ -11932,12 +12272,7 @@ export default function Header({
 
           {/* Notificaciones */}
           <button className="header__icon-btn" aria-label="Ver notificaciones (3 sin leer)">
-            <img
-              src={ICONS8("alarm")}
-              alt=""
-              aria-hidden="true"
-              className="header__icon-img"
-            />
+            <img src={ICONS8("alarm")} alt="" aria-hidden="true" className="header__icon-img" />
             <span className="header__badge" aria-hidden="true">3</span>
           </button>
 
@@ -11950,7 +12285,7 @@ export default function Header({
               aria-expanded={profileOpen}
               aria-haspopup="menu"
             >
-              {user.avatar
+              {user?.avatar
                 ? <img src={user.avatar} alt={user.name} className="header__avatar-img" />
                 : <span aria-hidden="true">{initials}</span>
               }
@@ -11959,8 +12294,8 @@ export default function Header({
             {profileOpen && (
               <div className="header__dropdown" role="menu">
                 <div className="header__dropdown-user">
-                  <strong className="header__dropdown-name">{user.name}</strong>
-                  <span className="header__dropdown-role">{user.role}</span>
+                  <strong className="header__dropdown-name">{user?.name ?? "Usuario"}</strong>
+                  <span className="header__dropdown-role">{user?.role ?? ""}</span>
                 </div>
                 <hr className="header__dropdown-divider" />
                 {dropdownItems.map((item) => (
@@ -12022,7 +12357,773 @@ export default function Header({
   );
 }
 -----------------------
-===== ./frontend/src/components/pages/Login.css =====
+===== ./frontend/src/components/Records/Records.css =====
+/* Reset */
+.records *,
+.records *::before,
+.records *::after {
+  box-sizing: border-box;
+}
+
+/* Tarjeta principal */
+.records {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 380px;
+  margin-inline: auto;
+  padding: 1.75rem;
+  background-color: var(--iw-surface);
+  border: 1.5px solid var(--iw-border);
+  border-radius: var(--iw-radius-lg);
+  box-shadow: var(--iw-shadow-lg);
+  font-family: var(--iw-font-base);
+}
+
+/* Título de sección */
+.records__section-title {
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  margin: 0 0 1rem;
+}
+
+/* Sección usuario */
+.records__user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Avatar circular con iniciales */
+.records__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--iw-border);
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-bold);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.records__user-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.records__user-name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+  line-height: 1.3;
+}
+
+.records__user-email {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+}
+
+.records__user-role {
+  font-size: var(--iw-font-size-xs);
+  color: var(--iw-primary);
+  font-weight: var(--iw-weight-medium);
+  text-transform: capitalize;
+}
+
+.records__user-empty {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+}
+
+/* Divisor */
+.records__divider {
+  border: none;
+  border-top: 1.5px solid var(--iw-border);
+  margin: 0;
+}
+
+/* Tabla de fichajes */
+.records__empty {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  margin: 0;
+}
+
+.records__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records__row {
+  border-bottom: 1px solid var(--iw-border);
+}
+
+.records__row:last-child {
+  border-bottom: none;
+}
+
+.records__label,
+.records__value {
+  padding: 0.5rem 0;
+  font-size: var(--iw-font-size-md);
+  vertical-align: middle;
+}
+
+.records__label {
+  color: var(--iw-text-muted);
+  font-weight: var(--iw-weight-normal);
+  width: 55%;
+}
+
+.records__value {
+  color: var(--iw-text);
+  font-weight: var(--iw-weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Total horas */
+.records__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.25rem;
+}
+
+.records__total-label {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: 0.02em;
+}
+
+.records__total-value {
+  font-size: var(--iw-font-size-xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .records {
+    padding: 1.25rem;
+    max-width: 100%;
+  }
+
+  .records__avatar {
+    width: 48px;
+    height: 48px;
+    font-size: var(--iw-font-size-md);
+  }
+}
+-----------------------
+===== ./frontend/src/components/Records/Records.jsx =====
+import "./Records.css";
+
+/**
+ * Records — card de fichajes del día
+ *
+ * Props:
+ *  - user:    { nombre, email, rol }  datos del usuario del backend
+ *  - records: [{ type, createdAt }]   fichajes acumulados desde Clock
+ *
+ * Tipos de fichaje (backend):
+ *  entry | break_start | break_end | exit
+ */
+
+const TYPE_LABELS = {
+  entry:       "Entrada",
+  break_start: "Inicio pausa",
+  break_end:   "Fin pausa",
+  exit:        "Salida",
+};
+
+const formatHour = (isoString) => {
+  const d = new Date(isoString);
+  return d.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
+};
+
+const formatDate = (isoString) => {
+  const d = new Date(isoString);
+  return d.toLocaleDateString("es-ES", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+/* Calcula horas trabajadas descontando pausas */
+const calcTotalHours = (records) => {
+  const entry = records.find((r) => r.type === "entry");
+  const exit  = records.find((r) => r.type === "exit");
+  if (!entry || !exit) return null;
+
+  let totalMs = new Date(exit.createdAt) - new Date(entry.createdAt);
+
+  const breakStarts = records.filter((r) => r.type === "break_start");
+  const breakEnds   = records.filter((r) => r.type === "break_end");
+
+  breakStarts.forEach((bs, i) => {
+    const be = breakEnds[i];
+    if (be) {
+      totalMs -= new Date(be.createdAt) - new Date(bs.createdAt);
+    }
+  });
+
+  const totalMins = Math.round(totalMs / 60000);
+  const h = Math.floor(totalMins / 60);
+  const m = totalMins % 60;
+  return m === 0 ? `${h}h` : `${h}h ${m}m`;
+};
+
+/* Genera iniciales del nombre (máx. 2 palabras) */
+const getInitials = (nombre = "") =>
+  nombre
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+export default function Records({ user = null, records = [] }) {
+  const today      = records[0]?.createdAt ?? new Date().toISOString();
+  const totalHours = calcTotalHours(records);
+  const initials   = getInitials(user?.nombre);
+
+  return (
+    <article className="records" aria-label="Resumen de fichajes del día">
+
+      {/* Sección de datos del usuario */}
+      <section className="records__user" aria-label="Datos del usuario">
+        <h2 className="records__section-title">Mis datos</h2>
+
+        <div className="records__user-info">
+          <div className="records__avatar" aria-hidden="true">
+            {initials || "?"}
+          </div>
+          <div className="records__user-text">
+            {user ? (
+              <>
+                <span className="records__user-name">{user.nombre}</span>
+                <span className="records__user-email">{user.email}</span>
+                <span className="records__user-role">{user.rol}</span>
+              </>
+            ) : (
+              <span className="records__user-empty">Sin sesión iniciada</span>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <hr className="records__divider" />
+
+      {/* Sección de fichajes */}
+      <section className="records__fichajes" aria-label="Fichajes del día">
+        <h2 className="records__section-title">Fichajes</h2>
+
+        {records.length === 0 ? (
+          <p className="records__empty">No hay fichajes registrados hoy.</p>
+        ) : (
+          <table className="records__table" aria-label="Tabla de fichajes">
+            <tbody>
+
+              {/* Fecha */}
+              <tr className="records__row">
+                <td className="records__label">Fecha</td>
+                <td className="records__value">{formatDate(today)}</td>
+              </tr>
+
+              {/* Una fila por cada fichaje */}
+              {records.map((record, index) => (
+                <tr key={index} className="records__row">
+                  <td className="records__label">
+                    {TYPE_LABELS[record.type] ?? record.type}
+                  </td>
+                  <td className="records__value">
+                    {formatHour(record.createdAt)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Total horas */}
+      {totalHours && (
+        <>
+          <hr className="records__divider" />
+          <div className="records__total" aria-label={`Total horas trabajadas: ${totalHours}`}>
+            <span className="records__total-label">TOTAL HORAS</span>
+            <span className="records__total-value">{totalHours}</span>
+          </div>
+        </>
+      )}
+
+    </article>
+  );
+}
+-----------------------
+===== ./frontend/src/context/AuthContext.jsx =====
+// frontend/src/context/AuthContext.jsx
+import { createContext, useContext, useState, useEffect } from 'react'
+import api from '../lib/api'
+
+const AuthContext = createContext(null)
+
+export const AuthProvider = ({ children }) => {
+  const [user, setUser]       = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const restore = async () => {
+      try {
+        await api.post('/auth/refresh')
+        const stored = localStorage.getItem('iw_user')
+        if (stored) setUser(JSON.parse(stored))
+      } catch {
+        setUser(null)
+        localStorage.removeItem('iw_user')
+      } finally {
+        setLoading(false)
+      }
+    }
+    restore()
+  }, [])
+
+  const login = async (email, password) => {
+    const { data } = await api.post('/auth/login', { email, password })
+    setUser(data.user)
+    localStorage.setItem('iw_user', JSON.stringify(data.user))
+    return data.user
+  }
+
+  const logout = async () => {
+    try { await api.post('/auth/logout') } catch {}
+    setUser(null)
+    localStorage.removeItem('iw_user')
+    window.location.href = '/login'
+  }
+
+  return (
+    <AuthContext.Provider value={{ user, loading, login, logout }}>
+      {children}
+    </AuthContext.Provider>
+  )
+}
+
+export const useAuth = () => useContext(AuthContext)
+-----------------------
+===== ./frontend/src/index.css =====
+@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
+
+:root {
+  /* Tipografía */
+  --iw-font-base:     "Outfit", "Segoe UI", system-ui, sans-serif;
+  --iw-font-size-xs:  0.75rem;
+  --iw-font-size-sm:  0.8rem;
+  --iw-font-size-md:  0.875rem;
+  --iw-font-size-lg:  1rem;
+  --iw-font-size-xl:  1.05rem;
+  --iw-font-size-2xl: 1.25rem;
+  --iw-font-size-3xl: 1.5rem;
+  --iw-line-height:   1.65;
+  --iw-weight-normal: 400;
+  --iw-weight-medium: 500;
+  --iw-weight-semi:   600;
+  --iw-weight-bold:   700;
+
+  /* Paleta primaria (violeta) */
+  --iw-primary:         #3e35a8;
+  --iw-primary-hover:   #2d258f;
+  --iw-primary-light:   #ece9fb;
+  --iw-primary-border:  #c5bff5;
+  --iw-primary-alpha20: rgba(62, 53, 168, 0.2);
+  --iw-primary-alpha25: rgba(62, 53, 168, 0.25);
+  --iw-primary-alpha40: rgba(62, 53, 168, 0.4);
+  --iw-primary-alpha50: rgba(62, 53, 168, 0.5);
+  --iw-primary-vivid:   #5b4fcf;
+  --iw-primary-soft:    #8b5cf6;
+
+  /* Paleta semántica — danger */
+  --iw-danger:          #b91c1c;
+  --iw-danger-hover:    #991b1b;
+  --iw-danger-light:    #fef2f2;
+
+  /* Paleta semántica — success (verde)
+     Contraste verificado WCAG AA:
+     --iw-success-text / --iw-success-light → 9.2:1 ✓
+     #ffffff / --iw-success                 → 5.1:1 ✓  */
+  --iw-success:         #15803d;
+  --iw-success-hover:   #166534;
+  --iw-success-light:   #f0fdf4;
+  --iw-success-border:  #86efac;
+  --iw-success-mid:     #bbf7d0;
+  --iw-success-text:    #14532d;
+
+  /* Paleta semántica — info (azul)
+     Usada para cards/estados "activo" */
+  --iw-info-bg:         #eff6ff;
+  --iw-info-border:     #bfdbfe;
+
+  /* Paleta semántica — warning */
+  --iw-warning:         #b45309;
+
+  /* Neutros (modo claro) */
+  --iw-text:            #1a1a2e;
+  --iw-text-muted:      #5a5878;
+  --iw-text-subtle:     #3a3850;
+  --iw-surface:         #ffffff;
+  --iw-bg:              #f3f2fb;
+  --iw-border:          #dddae8;
+
+  /* Neutros oscuros (footer / dark sections) */
+  --iw-dark-bg:         #0f0d1a;
+  --iw-dark-bg-raised:  #1e1b33;
+  --iw-dark-border:     rgba(255, 255, 255, 0.08);
+  --iw-dark-border-mid: rgba(255, 255, 255, 0.12);
+  --iw-dark-text:       #ffffff;
+  --iw-dark-text-body:  #b8b4d4;
+  --iw-dark-text-link:  #9490b8;
+  --iw-dark-text-dim:   #8c88aa;
+  --iw-dark-text-badge: #d4d0ec;
+
+  /* Espaciado / tamaños */
+  --iw-header-height:   64px;
+  --iw-max-width:       1280px;
+
+  /* Radios de borde */
+  --iw-radius-xs:       6px;
+  --iw-radius-sm:       8px;
+  --iw-radius-md:       10px;
+  --iw-radius-lg:       12px;
+  --iw-radius-logo:     9px;
+  --iw-radius-full:     999px;
+
+  /* Sombras */
+  --iw-shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.06);
+  --iw-shadow-md:   0 2px 16px rgba(62, 53, 168, 0.08);
+  --iw-shadow-lg:   0 8px 32px rgba(0, 0, 0, 0.10);
+
+  /* Transiciones */
+  --iw-transition:  0.15s ease;
+
+  /* Focus ring */
+  --iw-focus-ring:  0 0 0 3px rgba(62, 53, 168, 0.4);
+}
+
+
+/* RESET */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-normal);
+  line-height: var(--iw-line-height);
+  color: var(--iw-text);
+  background-color: var(--iw-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+a {
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+
+/* BASE TIPOGRÁFICA */
+
+p {
+  line-height: var(--iw-line-height);
+}
+
+strong {
+  font-weight: var(--iw-weight-semi);
+}
+
+small {
+  font-size: var(--iw-font-size-sm);
+}
+
+
+/* ENCABEZADOS */
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--iw-font-base);
+  font-weight: var(--iw-weight-bold);
+  line-height: 1.25;
+  color: var(--iw-text);
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
+h2 { font-size: clamp(1.375rem, 3vw, 1.875rem); }
+h3 { font-size: clamp(1.125rem, 2.5vw, 1.375rem); }
+h4 { font-size: 1.125rem; }
+h5 { font-size: 1rem; }
+h6 { font-size: 0.875rem; }
+
+
+/* CUERPO DE TEXTO Y ENLACES */
+
+.iw-link {
+  color: var(--iw-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color var(--iw-transition);
+}
+
+.iw-link:hover {
+  color: var(--iw-primary-hover);
+}
+
+.iw-link:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+  border-radius: var(--iw-radius-xs);
+}
+
+.iw-text-muted   { color: var(--iw-text-muted); }
+.iw-text-danger  { color: var(--iw-danger); }
+.iw-text-success { color: var(--iw-success); }
+
+
+/* COMPONENTES GENERALES */
+
+.iw-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1.125rem;
+  border: none;
+  border-radius: var(--iw-radius-full);
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background-color var(--iw-transition),
+    color var(--iw-transition),
+    transform 0.1s;
+  white-space: nowrap;
+}
+
+.iw-btn:active        { transform: scale(0.96); }
+.iw-btn:focus-visible { outline: none; box-shadow: var(--iw-focus-ring); }
+
+.iw-btn--primary       { background-color: var(--iw-primary); color: #ffffff; }
+.iw-btn--primary:hover { background-color: var(--iw-primary-hover); }
+
+.iw-btn--danger        { background-color: var(--iw-danger); color: #ffffff; }
+.iw-btn--danger:hover  { background-color: var(--iw-danger-hover); }
+
+.iw-btn--success       { background-color: var(--iw-success); color: #ffffff; }
+.iw-btn--success:hover { background-color: var(--iw-success-hover); }
+
+.iw-btn--ghost {
+  background-color: transparent;
+  color: var(--iw-text-muted);
+  border: 1.5px solid var(--iw-border);
+}
+.iw-btn--ghost:hover {
+  background-color: var(--iw-primary-light);
+  border-color: var(--iw-primary-border);
+  color: var(--iw-primary);
+}
+
+.iw-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2em 0.55em;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  line-height: 1;
+}
+
+.iw-badge--danger   { background-color: var(--iw-danger);        color: #ffffff; }
+.iw-badge--primary  { background-color: var(--iw-primary-light); color: var(--iw-primary); }
+.iw-badge--success  { background-color: var(--iw-success-mid);   color: var(--iw-success-text); }
+
+.iw-logo-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--iw-radius-logo);
+  background: linear-gradient(135deg, var(--iw-primary-vivid), var(--iw-primary-soft));
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: -0.5px;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.iw-divider {
+  border: none;
+  border-top: 1px solid var(--iw-border);
+  margin: 0;
+}
+
+:focus-visible {
+  outline: 2px solid var(--iw-primary);
+  outline-offset: 2px;
+}
+
+
+/* LAYOUT */
+
+.iw-container {
+  width: 100%;
+  max-width: var(--iw-max-width);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+@media (max-width: 600px) {
+  .iw-container {
+    padding-inline: 1rem;
+  }
+}
+
+.iw-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.app-main {
+  flex: 1;
+  padding: 2rem 1.5rem;
+  max-width: var(--iw-max-width);
+  margin-inline: auto;
+  width: 100%;
+}
+-----------------------
+===== ./frontend/src/lib/api.js =====
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: '/api',
+  withCredentials: true
+})
+
+api.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const original = error.config
+
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true
+
+      // Si ya estamos en login, no redirigir
+      if (window.location.pathname === '/login') {
+        return Promise.reject(error)
+      }
+
+      try {
+        await axios.post('/api/auth/refresh', {}, { withCredentials: true })
+        return api(original)
+      } catch {
+        window.location.href = '/login'
+      }
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default api
+-----------------------
+===== ./frontend/src/main.jsx =====
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import './index.css'
+import App from './App.jsx'
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)
+
+-----------------------
+===== ./frontend/src/pages/admin/Empleados.jsx =====
+export default function Empleados() { return <p>Empleados</p> }
+
+-----------------------
+===== ./frontend/src/pages/admin/Horarios.jsx =====
+export default function Horarios() { return <p>Horarios</p> }
+
+-----------------------
+===== ./frontend/src/pages/admin/Layout.jsx =====
+import { Outlet } from 'react-router-dom'; export default function AdminLayout() { return <Outlet /> }
+
+-----------------------
+===== ./frontend/src/pages/admin/Registros.jsx =====
+export default function Registros() { return <p>Registros</p> }
+
+-----------------------
+===== ./frontend/src/pages/admin/Turnos.jsx =====
+export default function Turnos() { return <p>Turnos</p> }
+
+-----------------------
+===== ./frontend/src/pages/Dashboard/Dashboard.jsx =====
+export default function Dashboard() { return <p>Dashboard</p> }
+
+-----------------------
+===== ./frontend/src/pages/Historial/Historial.jsx =====
+export default function Historial() { return <p>Historial</p> }
+
+-----------------------
+===== ./frontend/src/pages/Login/Login.css =====
 .login {
   min-height: 100vh;
   display: flex;
@@ -12158,425 +13259,10 @@ export default function Header({
   .login__card { padding: 2rem 1.25rem; }
 }
 -----------------------
-===== ./frontend/src/context/AuthContext.jsx =====
-// frontend/src/context/AuthContext.jsx
-import { createContext, useContext, useState, useEffect } from 'react'
-import api from '../lib/api'
-
-const AuthContext = createContext(null)
-
-export const AuthProvider = ({ children }) => {
-  const [user, setUser]       = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const restore = async () => {
-      try {
-        await api.post('/auth/refresh')
-        const stored = localStorage.getItem('iw_user')
-        if (stored) setUser(JSON.parse(stored))
-      } catch {
-        setUser(null)
-        localStorage.removeItem('iw_user')
-      } finally {
-        setLoading(false)
-      }
-    }
-    restore()
-  }, [])
-
-  const login = async (email, password) => {
-    const { data } = await api.post('/auth/login', { email, password })
-    setUser(data.user)
-    localStorage.setItem('iw_user', JSON.stringify(data.user))
-    return data.user
-  }
-
-  const logout = async () => {
-    try { await api.post('/auth/logout') } catch {}
-    setUser(null)
-    localStorage.removeItem('iw_user')
-    window.location.href = '/login'
-  }
-
-  return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  )
-}
-
-export const useAuth = () => useContext(AuthContext)
------------------------
-===== ./frontend/src/index.css =====
-@import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
-
-:root {
-  /* ── Tipografía ── */
-  --iw-font-base:     "Outfit", "Segoe UI", system-ui, sans-serif;
-  --iw-font-size-xs:  0.75rem;   /* 12px */
-  --iw-font-size-sm:  0.8rem;    /* 12.8px */
-  --iw-font-size-md:  0.875rem;  /* 14px */
-  --iw-font-size-lg:  1rem;      /* 16px */
-  --iw-font-size-xl:  1.05rem;   /* 16.8px */
-  --iw-font-size-2xl: 1.25rem;   /* 20px */
-  --iw-font-size-3xl: 1.5rem;    /* 24px */
-  --iw-line-height:   1.65;
-  --iw-weight-normal: 400;
-  --iw-weight-medium: 500;
-  --iw-weight-semi:   600;
-  --iw-weight-bold:   700;
-
-  /* ── Paleta primaria (violeta) ── */
-  --iw-primary:         #3e35a8;
-  --iw-primary-hover:   #2d258f;
-  --iw-primary-light:   #ece9fb;
-  --iw-primary-border:  #c5bff5;
-  --iw-primary-alpha20: rgba(62, 53, 168, 0.2);
-  --iw-primary-alpha25: rgba(62, 53, 168, 0.25);
-  --iw-primary-alpha40: rgba(62, 53, 168, 0.4);
-  --iw-primary-alpha50: rgba(62, 53, 168, 0.5);
-
-  /* Variante más saturada (gradientes, logo) */
-  --iw-primary-vivid:   #5b4fcf;
-  --iw-primary-soft:    #8b5cf6;
-
-  /* ── Paleta semántica ── */
-  --iw-danger:          #b91c1c;
-  --iw-danger-hover:    #991b1b;
-  --iw-danger-light:    #fef2f2;
-  --iw-success:         #15803d;
-  --iw-warning:         #b45309;
-
-  /* ── Neutros (modo claro) ── */
-  --iw-text:            #1a1a2e;   
-  --iw-text-muted:      #5a5878;  
-  --iw-text-subtle:     #3a3850;   
-  --iw-surface:         #ffffff;  
-  --iw-bg:              #f3f2fb;   
-  --iw-border:          #dddae8;
-
-  /* ── Neutros oscuros (footer / dark sections) ── */
-  --iw-dark-bg:         #0f0d1a;
-  --iw-dark-bg-raised:  #1e1b33;
-  --iw-dark-border:     rgba(255, 255, 255, 0.08);
-  --iw-dark-border-mid: rgba(255, 255, 255, 0.12);
-  --iw-dark-text:       #ffffff;
-  --iw-dark-text-body:  #b8b4d4;
-  --iw-dark-text-link:  #9490b8;
-  --iw-dark-text-dim:   #8c88aa;
-  --iw-dark-text-badge: #d4d0ec;
-
-  /* ── Espaciado / tamaños ── */
-  --iw-header-height:   64px;
-  --iw-max-width:       1280px;
-
-  /* ── Radios de borde ── */
-  --iw-radius-xs:       6px;
-  --iw-radius-sm:       8px;
-  --iw-radius-md:       10px;
-  --iw-radius-lg:       12px;
-  --iw-radius-logo:     9px;
-  --iw-radius-full:     999px;
-
-  /* ── Sombras ── */
-  --iw-shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.06);
-  --iw-shadow-md:   0 2px 16px rgba(62, 53, 168, 0.08);
-  --iw-shadow-lg:   0 8px 32px rgba(0, 0, 0, 0.10);
-
-  /* ── Transiciones ── */
-  --iw-transition:  0.15s ease;
-
-  /* ── Focus ring ── */
-  --iw-focus-ring:  0 0 0 3px rgba(62, 53, 168, 0.4);
-}
-
-
-/* RESET */
-
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  font-size: 100%;
-  -webkit-text-size-adjust: 100%;
-  scroll-behavior: smooth;
-}
-
-body {
-  font-family: var(--iw-font-base);
-  font-size: var(--iw-font-size-lg);
-  font-weight: var(--iw-weight-normal);
-  line-height: var(--iw-line-height);
-  color: var(--iw-text);
-  background-color: var(--iw-bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-img,
-svg {
-  display: block;
-  max-width: 100%;
-}
-
-button {
-  font-family: inherit;
-  cursor: pointer;
-}
-
-a {
-  color: inherit;
-}
-
-ul,
-ol {
-  list-style: none;
-}
-
-
-/* BASE TIPOGRÁFICA */
-
-p {
-  line-height: var(--iw-line-height);
-}
-
-strong {
-  font-weight: var(--iw-weight-semi);
-}
-
-small {
-  font-size: var(--iw-font-size-sm);
-}
-
-
-/* ENCABEZADOS */
-
-h1, h2, h3, h4, h5, h6 {
-  font-family: var(--iw-font-base);
-  font-weight: var(--iw-weight-bold);
-  line-height: 1.25;
-  color: var(--iw-text);
-}
-
-h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
-h2 { font-size: clamp(1.375rem, 3vw, 1.875rem); }
-h3 { font-size: clamp(1.125rem, 2.5vw, 1.375rem); }
-h4 { font-size: 1.125rem; }
-h5 { font-size: 1rem;     }
-h6 { font-size: 0.875rem; }
-
-
-/* CUERPO DE TEXTO Y ENLACES */
-
-.iw-link {
-  color: var(--iw-primary);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color var(--iw-transition);
-}
-
-.iw-link:hover {
-  color: var(--iw-primary-hover);
-}
-
-.iw-link:focus-visible {
-  outline: none;
-  box-shadow: var(--iw-focus-ring);
-  border-radius: var(--iw-radius-xs);
-}
-
-.iw-text-muted   { color: var(--iw-text-muted); }
-.iw-text-danger  { color: var(--iw-danger); }
-.iw-text-success { color: var(--iw-success); }
-
-
-/* COMPONENTES GENERALES */
-
-/* ── Botón base ── */
-.iw-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1.125rem;
-  border: none;
-  border-radius: var(--iw-radius-full);
-  font-family: var(--iw-font-base);
-  font-size: var(--iw-font-size-md);
-  font-weight: var(--iw-weight-semi);
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    background-color var(--iw-transition),
-    color var(--iw-transition),
-    transform 0.1s;
-  white-space: nowrap;
-}
-
-.iw-btn:active        { transform: scale(0.96); }
-.iw-btn:focus-visible { outline: none; box-shadow: var(--iw-focus-ring); }
-
-.iw-btn--primary {
-  background-color: var(--iw-primary);
-  color: #ffffff;
-}
-.iw-btn--primary:hover { background-color: var(--iw-primary-hover); }
-
-.iw-btn--danger {
-  background-color: var(--iw-danger);
-  color: #ffffff;
-}
-.iw-btn--danger:hover  { background-color: var(--iw-danger-hover); }
-
-.iw-btn--ghost {
-  background-color: transparent;
-  color: var(--iw-text-muted);
-  border: 1.5px solid var(--iw-border);
-}
-.iw-btn--ghost:hover {
-  background-color: var(--iw-primary-light);
-  border-color: var(--iw-primary-border);
-  color: var(--iw-primary);
-}
-
-/* ── Badge / pill ── */
-.iw-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0.2em 0.55em;
-  border-radius: var(--iw-radius-full);
-  font-size: var(--iw-font-size-xs);
-  font-weight: var(--iw-weight-bold);
-  line-height: 1;
-}
-
-.iw-badge--danger {
-  background-color: var(--iw-danger);
-  color: #ffffff;
-}
-
-.iw-badge--primary {
-  background-color: var(--iw-primary-light);
-  color: var(--iw-primary);
-}
-
-/* ── Logo / icono de marca ── */
-.iw-logo-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--iw-radius-logo);
-  background: linear-gradient(135deg, var(--iw-primary-vivid), var(--iw-primary-soft));
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: var(--iw-weight-bold);
-  letter-spacing: -0.5px;
-  flex-shrink: 0;
-  user-select: none;
-}
-
-/* ── Divider ── */
-.iw-divider {
-  border: none;
-  border-top: 1px solid var(--iw-border);
-  margin: 0;
-}
-
-/* ── Focus ring global (para casos no cubiertos por :focus-visible) ── */
-:focus-visible {
-  outline: 2px solid var(--iw-primary);
-  outline-offset: 2px;
-}
-
-
-/* LAYOUT */
-
-.iw-container {
-  width: 100%;
-  max-width: var(--iw-max-width);
-  margin-inline: auto;
-  padding-inline: 1.5rem;
-}
-
-@media (max-width: 600px) {
-  .iw-container {
-    padding-inline: 1rem;
-  }
-}
-
-.iw-sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.app-main {
-  flex: 1;
-  padding: 2rem 1.5rem;
-  max-width: var(--iw-max-width);
-  margin-inline: auto;
-  width: 100%;
-}
------------------------
-===== ./frontend/src/lib/api.js =====
-import axios from 'axios'
-
-const api = axios.create({
-  baseURL: '/api',
-  withCredentials: true
-})
-
-api.interceptors.response.use(
-  (res) => res,
-  async (error) => {
-    const original = error.config
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true
-      try {
-        await axios.post('/api/auth/refresh', {}, { withCredentials: true })
-        return api(original)
-      } catch {
-        window.location.href = '/login'
-      }
-    }
-    return Promise.reject(error)
-  }
-)
-
-export default api
------------------------
-===== ./frontend/src/main.jsx =====
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-
-createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
-
------------------------
-===== ./frontend/src/pages/Login.jsx =====
+===== ./frontend/src/pages/Login/Login.jsx =====
 import { useState } from 'react'
-import { useAuth } from '../context/AuthContext'
-import '../components/pages/Login.css'
+import { useAuth } from "../../context/AuthContext";
+import './Login.css'
 
 export default function Login() {
   const { login }                       = useAuth()
@@ -12660,6 +13346,1458 @@ export default function Login() {
       </div>
     </div>
   )
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/Empresas.jsx =====
+import { useState, useEffect, useCallback } from "react";
+import "./superadmin.css";
+
+/**
+ * Empresas — página de gestión de empresas para el superadmin.
+ * Ruta: /superadmin/empresas
+ *
+ * Endpoints:
+ *  GET   /api/companies       → lista de empresas
+ *  PATCH /api/companies/:id   → { active: bool }
+ */
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
+const exportToCSV = (data, filename) => {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]).join(",");
+  const rows    = data.map((row) =>
+    Object.values(row).map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")
+  );
+  const blob = new Blob([[headers, ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = `${filename}.csv`; link.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportToPDF = (listId, title) => {
+  const el  = document.getElementById(listId);
+  if (!el) return;
+  const win = window.open("", "_blank");
+  win.document.write(`<html><head><title>${title}</title>
+    <style>body{font-family:sans-serif;padding:2rem;color:#1a1a2e}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ddd;padding:.5rem;text-align:left}
+    th{background:#3e35a8;color:white}</style>
+    </head><body>${el.innerHTML}</body></html>`);
+  win.document.close(); win.print();
+};
+
+function EmpresaCard({ empresa, onToggle, loading }) {
+  const isActive    = empresa.active !== false;
+  const displayName = empresa.name ?? "Sin nombre";
+  const initials    = displayName.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
+
+  return (
+    <article
+      className={`sa-card ${isActive ? "sa-card--active" : "sa-card--inactive"}`}
+      aria-label={`${displayName}, ${isActive ? "activa" : "inactiva"}`}
+    >
+      <div className="sa-card__logo" aria-hidden="true">
+        {empresa.logo
+          ? <img src={empresa.logo} alt={`Logo ${displayName}`} className="sa-card__logo-img" />
+          : <span className="sa-card__logo-initials">{initials}</span>
+        }
+      </div>
+
+      <div className="sa-card__info">
+        <p className="sa-card__name">{displayName}</p>
+        {empresa.sector && <p className="sa-card__subtitle">{empresa.sector}</p>}
+      </div>
+
+      <span
+        className={`sa-card__badge ${isActive ? "sa-card__badge--active" : "sa-card__badge--inactive"}`}
+        aria-label={`Estado: ${isActive ? "activa" : "inactiva"}`}
+      >
+        {isActive ? "ACTIVA" : "INACTIVA"}
+      </span>
+
+      <div className="sa-card__actions">
+        <button
+          className={`sa-card__btn ${isActive ? "sa-card__btn--deactivate" : "sa-card__btn--activate"}`}
+          onClick={() => onToggle(empresa.id, !isActive)}
+          disabled={loading === empresa.id}
+          aria-label={`${isActive ? "Desactivar" : "Activar"} empresa ${displayName}`}
+        >
+          {loading === empresa.id ? "Procesando..." : isActive ? "Desactivar empresa" : "Activar empresa"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+export default function Empresas() {
+  const [empresas, setEmpresas] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError]         = useState(null);
+  const [toggling, setToggling]   = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/companies`, { headers: authHeaders() })
+      .then((r) => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); })
+      .then((data) => setEmpresas(data.datos ?? data))
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const toggleEmpresa = useCallback(async (id, active) => {
+    setToggling(id);
+    try {
+      const res = await fetch(`${API_URL}/api/companies/${id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const updated = await res.json();
+      setEmpresas((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
+    } catch (err) {
+      alert(`No se pudo actualizar la empresa: ${err.message}`);
+    } finally {
+      setToggling(null);
+    }
+  }, []);
+
+  return (
+    <div className="sa-page">
+
+      <div className="sa-header">
+        <h1 className="sa-title">Empresas</h1>
+        <div className="sa-actions">
+          <button
+            className="iw-btn iw-btn--primary sa-action-btn"
+            onClick={() => alert("Crear empresa — pendiente de implementar")}
+          >
+            Crear empresa nueva
+          </button>
+          <button
+            className="iw-btn iw-btn--ghost sa-action-btn"
+            onClick={() => exportToCSV(empresas, "empresas")}
+          >
+            Exportar a CSV
+          </button>
+          <button
+            className="iw-btn iw-btn--ghost sa-action-btn"
+            onClick={() => exportToPDF("empresas-list", "Empresas")}
+          >
+            Exportar a PDF
+          </button>
+        </div>
+      </div>
+
+      {isLoading && <p className="sa-loading" role="status">Cargando empresas...</p>}
+      {error     && <p className="sa-error"   role="alert">{error}</p>}
+
+      {!isLoading && !error && (
+        <div className="sa-list" id="empresas-list" aria-label="Lista de empresas">
+          {empresas.length === 0
+            ? <p className="sa-empty">No hay empresas registradas.</p>
+            : empresas.map((e) => (
+                <EmpresaCard
+                  key={e.id}
+                  empresa={e}
+                  onToggle={toggleEmpresa}
+                  loading={toggling}
+                />
+              ))
+          }
+        </div>
+      )}
+
+    </div>
+  );
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/Layout.jsx =====
+import { Outlet } from 'react-router-dom'; export default function SuperAdminLayout() { return <Outlet /> }
+
+-----------------------
+===== ./frontend/src/pages/superadmin/superadmin.css =====
+/* superadmin.css — consume variables de index.css
+   Todos los valores usan var(--iw-*) del sistema de diseño global.
+*/
+
+/* Reset de ámbito */
+.sa-page *,
+.sa-page *::before,
+.sa-page *::after {
+  box-sizing: border-box;
+}
+
+/* Contenedor de página */
+.sa-page {
+  max-width: var(--iw-max-width);
+  margin-inline: auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: var(--iw-font-base);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Cabecera de sección */
+.sa-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sa-title {
+  font-size: var(--iw-font-size-2xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: -0.3px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.sa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.sa-action-btn {
+  font-size: var(--iw-font-size-sm);
+  padding: 0.45rem 1rem;
+}
+
+/* Estados */
+.sa-loading,
+.sa-empty {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-text-muted);
+  padding: 1rem 0;
+}
+
+.sa-error {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-danger);
+  padding: 0.75rem 1rem;
+  background-color: var(--iw-danger-light);
+  border: 1px solid var(--iw-danger);
+  border-radius: var(--iw-radius-sm);
+}
+
+/* Lista de cards */
+.sa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card */
+.sa-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--iw-radius-md);
+  border: 1.5px solid transparent;
+  transition: box-shadow var(--iw-transition);
+}
+
+.sa-card:hover {
+  box-shadow: var(--iw-shadow-md);
+}
+
+/* Activo → fondo info azul (--iw-info-*) */
+.sa-card--active {
+  background-color: var(--iw-info-bg);
+  border-color: var(--iw-info-border);
+}
+
+/* Inactivo → fondo success verde claro (--iw-success-light) */
+.sa-card--inactive {
+  background-color: var(--iw-success-light);
+  border-color: var(--iw-success-border);
+}
+
+/* Logo / avatar */
+.sa-card__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--iw-radius-sm);
+  border: 1.5px solid var(--iw-border);
+  background-color: var(--iw-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sa-card__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sa-card__logo-initials {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-primary);
+}
+
+/* Info */
+.sa-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sa-card__name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sa-card__subtitle {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge */
+.sa-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.875rem;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sa-card__badge--active {
+  background-color: var(--iw-success-mid);
+  color: var(--iw-success-text);
+  border: 1px solid var(--iw-success-border);
+}
+
+.sa-card__badge--inactive {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-text-subtle);
+  border: 1px solid var(--iw-primary-border);
+}
+
+/* Botón de acción */
+.sa-card__actions { flex-shrink: 0; }
+
+.sa-card__btn {
+  padding: 0.4rem 0.875rem;
+  border: none;
+  border-radius: var(--iw-radius-sm);
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-sm);
+  font-weight: var(--iw-weight-semi);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--iw-transition), opacity var(--iw-transition), transform 0.1s;
+}
+
+.sa-card__btn:disabled              { opacity: 0.6; cursor: not-allowed; }
+.sa-card__btn:not(:disabled):active { transform: scale(0.97); }
+.sa-card__btn:focus-visible         { outline: none; box-shadow: var(--iw-focus-ring); }
+
+.sa-card__btn--deactivate                      { background-color: var(--iw-danger);        color: #ffffff; }
+.sa-card__btn--deactivate:not(:disabled):hover { background-color: var(--iw-danger-hover); }
+
+.sa-card__btn--activate                        { background-color: var(--iw-success);       color: #ffffff; }
+.sa-card__btn--activate:not(:disabled):hover   { background-color: var(--iw-success-hover); }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .sa-header     { flex-direction: column; align-items: flex-start; }
+  .sa-actions    { margin-left: 0; width: 100%; }
+  .sa-action-btn { flex: 1; justify-content: center; }
+}
+
+@media (max-width: 560px) {
+  .sa-card {
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .sa-card__badge   { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+  .sa-card__info    { grid-column: 2; grid-row: 1; align-self: start; padding-right: 5rem; }
+  .sa-card__actions { grid-column: 1 / -1; grid-row: 2; }
+  .sa-card__btn     { width: 100%; padding: 0.5rem; text-align: center; }
+
+  .sa-page { padding: 1.25rem 1rem 3rem; gap: 1.25rem; }
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/Superadmin.css =====
+/* superadmin.css — consume variables de index.css
+   Todos los valores usan var(--iw-*) del sistema de diseño global.
+*/
+
+/* Reset de ámbito */
+.sa-page *,
+.sa-page *::before,
+.sa-page *::after {
+  box-sizing: border-box;
+}
+
+/* Contenedor de página */
+.sa-page {
+  max-width: var(--iw-max-width);
+  margin-inline: auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: var(--iw-font-base);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Cabecera de sección */
+.sa-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.sa-title {
+  font-size: var(--iw-font-size-2xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: -0.3px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.sa-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.sa-action-btn {
+  font-size: var(--iw-font-size-sm);
+  padding: 0.45rem 1rem;
+}
+
+/* Estados */
+.sa-loading,
+.sa-empty {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-text-muted);
+  padding: 1rem 0;
+}
+
+.sa-error {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-danger);
+  padding: 0.75rem 1rem;
+  background-color: var(--iw-danger-light);
+  border: 1px solid var(--iw-danger);
+  border-radius: var(--iw-radius-sm);
+}
+
+/* Lista de cards */
+.sa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card */
+.sa-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--iw-radius-md);
+  border: 1.5px solid transparent;
+  transition: box-shadow var(--iw-transition);
+}
+
+.sa-card:hover {
+  box-shadow: var(--iw-shadow-md);
+}
+
+/* Activo → fondo info azul (--iw-info-*) */
+.sa-card--active {
+  background-color: var(--iw-info-bg);
+  border-color: var(--iw-info-border);
+}
+
+/* Inactivo → fondo success verde claro (--iw-success-light) */
+.sa-card--inactive {
+  background-color: var(--iw-success-light);
+  border-color: var(--iw-success-border);
+}
+
+/* Logo / avatar */
+.sa-card__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--iw-radius-sm);
+  border: 1.5px solid var(--iw-border);
+  background-color: var(--iw-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.sa-card__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sa-card__logo-initials {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-primary);
+}
+
+/* Info */
+.sa-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.sa-card__name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sa-card__subtitle {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge */
+.sa-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.875rem;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.sa-card__badge--active {
+  background-color: var(--iw-success-mid);
+  color: var(--iw-success-text);
+  border: 1px solid var(--iw-success-border);
+}
+
+.sa-card__badge--inactive {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-text-subtle);
+  border: 1px solid var(--iw-primary-border);
+}
+
+/* Botón de acción */
+.sa-card__actions { flex-shrink: 0; }
+
+.sa-card__btn {
+  padding: 0.4rem 0.875rem;
+  border: none;
+  border-radius: var(--iw-radius-sm);
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-sm);
+  font-weight: var(--iw-weight-semi);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--iw-transition), opacity var(--iw-transition), transform 0.1s;
+}
+
+.sa-card__btn:disabled              { opacity: 0.6; cursor: not-allowed; }
+.sa-card__btn:not(:disabled):active { transform: scale(0.97); }
+.sa-card__btn:focus-visible         { outline: none; box-shadow: var(--iw-focus-ring); }
+
+.sa-card__btn--deactivate                      { background-color: var(--iw-danger);        color: #ffffff; }
+.sa-card__btn--deactivate:not(:disabled):hover { background-color: var(--iw-danger-hover); }
+
+.sa-card__btn--activate                        { background-color: var(--iw-success);       color: #ffffff; }
+.sa-card__btn--activate:not(:disabled):hover   { background-color: var(--iw-success-hover); }
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .sa-header     { flex-direction: column; align-items: flex-start; }
+  .sa-actions    { margin-left: 0; width: 100%; }
+  .sa-action-btn { flex: 1; justify-content: center; }
+}
+
+@media (max-width: 560px) {
+  .sa-card {
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .sa-card__badge   { grid-column: 2; grid-row: 1; justify-self: end; align-self: start; }
+  .sa-card__info    { grid-column: 2; grid-row: 1; align-self: start; padding-right: 5rem; }
+  .sa-card__actions { grid-column: 1 / -1; grid-row: 2; }
+  .sa-card__btn     { width: 100%; padding: 0.5rem; text-align: center; }
+
+  .sa-page { padding: 1.25rem 1rem 3rem; gap: 1.25rem; }
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/SuperadminDashboard.css =====
+/* Reset */
+.ad-page *,
+.ad-page *::before,
+.ad-page *::after {
+  box-sizing: border-box;
+}
+
+/* Página principal */
+.ad-page {
+  max-width: var(--iw-max-width);
+  margin-inline: auto;
+  padding: 2rem 1.5rem 4rem;
+  font-family: var(--iw-font-base);
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+/* Navegación de anclas */
+.ad-nav {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.ad-nav__link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 1.25rem;
+  border-radius: var(--iw-radius-sm);
+  background-color: var(--iw-primary);
+  color: #ffffff;
+  font-size: var(--iw-font-size-sm);
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color var(--iw-transition);
+}
+
+.ad-nav__link:hover {
+  background-color: var(--iw-primary-hover);
+}
+
+.ad-nav__link:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+}
+
+/* Sección (empresas / usuarios) */
+.ad-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  scroll-margin-top: 80px; /* compensa el header sticky */
+}
+
+/* Cabecera de sección */
+.ad-section__header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.ad-section__title {
+  font-size: var(--iw-font-size-2xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: -0.3px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ad-section__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.ad-section__action-btn {
+  font-size: var(--iw-font-size-sm);
+  padding: 0.45rem 1rem;
+}
+
+/* Estados de carga / error / vacío */
+.ad-section__loading,
+.ad-section__empty {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-text-muted);
+  padding: 1rem 0;
+}
+
+.ad-section__error {
+  font-size: var(--iw-font-size-md);
+  color: var(--iw-danger);
+  padding: 0.75rem 1rem;
+  background-color: var(--iw-danger-light);
+  border: 1px solid #fecaca;
+  border-radius: var(--iw-radius-sm);
+}
+
+/* Lista de cards */
+.ad-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Card individual */
+.ad-card {
+  display: grid;
+  grid-template-columns: 56px 1fr auto auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--iw-radius-md);
+  border: 1.5px solid transparent;
+  transition: box-shadow var(--iw-transition);
+}
+
+.ad-card:hover {
+  box-shadow: var(--iw-shadow-md);
+}
+
+/* Card activa */
+.ad-card--active {
+  background-color: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+/* Card inactiva */
+.ad-card--inactive {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
+/* Logo / avatar */
+.ad-card__logo {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--iw-radius-sm);
+  border: 1.5px solid rgba(0, 0, 0, 0.08);
+  background-color: rgba(255, 255, 255, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.ad-card__logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ad-card__logo-initials {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-primary);
+}
+
+/* Información */
+.ad-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ad-card__name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ad-card__subtitle {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Badge de estado */
+.ad-card__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.875rem;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.ad-card__badge--active {
+  background-color: #bbf7d0;
+  color: #14532d;
+  border: 1px solid #86efac;
+}
+
+.ad-card__badge--inactive {
+  background-color: #e2e0f0;
+  color: #3a3850;
+  border: 1px solid #c5bff5;
+}
+
+/* Botón de acción dentro de la card */
+.ad-card__actions {
+  flex-shrink: 0;
+}
+
+.ad-card__btn {
+  padding: 0.4rem 0.875rem;
+  border: none;
+  border-radius: var(--iw-radius-sm);
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-sm);
+  font-weight: var(--iw-weight-semi);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color var(--iw-transition), opacity var(--iw-transition), transform 0.1s;
+}
+
+.ad-card__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ad-card__btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.ad-card__btn:focus-visible {
+  outline: none;
+  box-shadow: var(--iw-focus-ring);
+}
+
+.ad-card__btn--deactivate {
+  background-color: var(--iw-danger);
+  color: #ffffff;
+}
+
+.ad-card__btn--deactivate:not(:disabled):hover {
+  background-color: var(--iw-danger-hover);
+}
+
+.ad-card__btn--activate {
+  background-color: #15803d;
+  color: #ffffff;
+}
+
+.ad-card__btn--activate:not(:disabled):hover {
+  background-color: #166534;
+}
+
+/* RESPONSIVE */
+@media (max-width: 700px) {
+  .ad-section__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .ad-section__actions {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .ad-section__action-btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 560px) {
+  .ad-card {
+    grid-template-columns: 48px 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .ad-card__badge {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+  }
+
+  .ad-card__info {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: start;
+    padding-right: 5rem; /* espacio para el badge */
+  }
+
+  .ad-card__actions {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .ad-card__btn {
+    width: 100%;
+    padding: 0.5rem;
+    text-align: center;
+  }
+
+  .ad-page {
+    padding: 1.25rem 1rem 3rem;
+    gap: 2rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .ad-nav {
+    flex-direction: column;
+  }
+
+  .ad-nav__link {
+    text-align: center;
+  }
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/SuperadminDashboard.jsx =====
+import { useState, useEffect, useCallback } from "react";
+import "./AdminDashboard.css";
+
+/**
+ * AdminDashboard — página del superadmin.
+ *
+ * Modelo User (backend):
+ *  id, company_id, name, email, role, active, remote_allowed, created_at
+ *
+ * Endpoints:
+ *  GET   /api/empresas       → lista de empresas
+ *  GET   /api/usuarios       → lista de usuarios (requiere rol admin)
+ *  PATCH /api/empresas/:id   → { active: bool }
+ *  PATCH /api/usuarios/:id   → { active: bool }
+ */
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
+/* Exporta a CSV cualquier array de objetos */
+const exportToCSV = (data, filename) => {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]).join(",");
+  const rows    = data.map((row) =>
+    Object.values(row)
+      .map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`)
+      .join(",")
+  );
+  const csv  = [headers, ...rows].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href     = url;
+  link.download = `${filename}.csv`;
+  link.click();
+  URL.revokeObjectURL(url);
+};
+
+/* Exporta a PDF usando la ventana de impresión del navegador */
+const exportToPDF = (sectionId, filename) => {
+  const section = document.getElementById(sectionId);
+  if (!section) return;
+  const win = window.open("", "_blank");
+  win.document.write(`
+    <html>
+      <head>
+        <title>${filename}</title>
+        <style>
+          body { font-family: sans-serif; padding: 2rem; color: #1a1a2e; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
+          th { background: #3e35a8; color: white; }
+        </style>
+      </head>
+      <body>${section.innerHTML}</body>
+    </html>
+  `);
+  win.document.close();
+  win.print();
+};
+
+/* Card reutilizable para empresa y usuario */
+function EntityCard({ entity, type, onToggle, loading, companyName }) {
+  const isActive    = entity.active !== false;
+  const logoSrc     = entity.logo ?? entity.avatar ?? null;
+  const displayName = entity.name ?? "Sin nombre";
+
+  /*
+   * Subtítulo:
+   *  - Usuarios → nombre de la empresa a la que pertenecen
+   *  - Empresas → sector o email si lo hubiera
+   */
+  const subtitle = type === "usuario"
+    ? companyName ?? `Empresa #${entity.company_id}`
+    : entity.sector ?? entity.email ?? null;
+
+  /* Rol (solo en usuarios) */
+  const roleLabel = type === "usuario" ? entity.role : null;
+
+  const initials = displayName
+    .split(" ")
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? "")
+    .join("");
+
+  return (
+    <article
+      className={`ad-card ${isActive ? "ad-card--active" : "ad-card--inactive"}`}
+      aria-label={`${displayName}, ${isActive ? "activo" : "inactivo"}`}
+    >
+      {/* Logo o avatar */}
+      <div className="ad-card__logo" aria-hidden="true">
+        {logoSrc ? (
+          <img src={logoSrc} alt={`Logo de ${displayName}`} className="ad-card__logo-img" />
+        ) : (
+          <span className="ad-card__logo-initials">{initials}</span>
+        )}
+      </div>
+
+      {/* Info */}
+      <div className="ad-card__info">
+        <p className="ad-card__name">{displayName}</p>
+        {subtitle   && <p className="ad-card__subtitle">{subtitle}</p>}
+        {roleLabel  && <p className="ad-card__role">{roleLabel}</p>}
+      </div>
+
+      {/* Badge de estado */}
+      <span
+        className={`ad-card__badge ${isActive ? "ad-card__badge--active" : "ad-card__badge--inactive"}`}
+        aria-label={`Estado: ${isActive ? "activo" : "inactivo"}`}
+      >
+        {isActive ? "ACTIVO" : "INACTIVO"}
+      </span>
+
+      {/* Botón de acción */}
+      <div className="ad-card__actions">
+        <button
+          className={`ad-card__btn ${isActive ? "ad-card__btn--deactivate" : "ad-card__btn--activate"}`}
+          onClick={() => onToggle(entity.id, !isActive)}
+          disabled={loading === entity.id}
+          aria-label={`${isActive ? "Desactivar" : "Activar"} ${type} ${displayName}`}
+        >
+          {loading === entity.id
+            ? "Procesando..."
+            : isActive
+              ? `Desactivar ${type}`
+              : `Activar ${type}`}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+/* Sección reutilizable (empresas / usuarios) */
+function DashboardSection({
+  id, title, items, type,
+  loadingItem, isLoading, error,
+  onToggle, onCreateNew,
+  csvFilename, pdfFilename,
+  empresas = [],   /* solo se usa en la sección de usuarios */
+}) {
+  /* Mapa id → nombre de empresa para búsqueda O(1) */
+  const empresaMap = Object.fromEntries(
+    empresas.map((e) => [e.id, e.name ?? e.nombre ?? `Empresa #${e.id}`])
+  );
+  return (
+    <section className="ad-section" id={id} aria-labelledby={`${id}-title`}>
+
+      <div className="ad-section__header">
+        <h2 className="ad-section__title" id={`${id}-title`}>{title}</h2>
+        <div className="ad-section__actions">
+          <button
+            className="iw-btn iw-btn--primary ad-section__action-btn"
+            onClick={onCreateNew}
+          >
+            {type === "empresa" ? "Crear empresa nueva" : "Crear nuevo usuario"}
+          </button>
+          <button
+            className="iw-btn iw-btn--ghost ad-section__action-btn"
+            onClick={() => exportToCSV(items, csvFilename)}
+          >
+            Exportar a CSV
+          </button>
+          <button
+            className="iw-btn iw-btn--ghost ad-section__action-btn"
+            onClick={() => exportToPDF(`${id}-list`, pdfFilename)}
+          >
+            Exportar a PDF
+          </button>
+        </div>
+      </div>
+
+      {isLoading && (
+        <p className="ad-section__loading" role="status" aria-live="polite">
+          Cargando {title.toLowerCase()}...
+        </p>
+      )}
+      {error && (
+        <p className="ad-section__error" role="alert">{error}</p>
+      )}
+
+      {!isLoading && !error && (
+        <div className="ad-list" id={`${id}-list`}>
+          {items.length === 0 ? (
+            <p className="ad-section__empty">
+              No hay {title.toLowerCase()} registradas.
+            </p>
+          ) : (
+            items.map((item) => (
+              <EntityCard
+                key={item.id}
+                entity={item}
+                type={type}
+                onToggle={onToggle}
+                loading={loadingItem}
+                companyName={type === "usuario" ? empresaMap[item.company_id] : undefined}
+              />
+            ))
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
+
+export default function AdminDashboard() {
+  const [empresas, setEmpresas]               = useState([]);
+  const [usuarios, setUsuarios]               = useState([]);
+  const [loadingEmpresas, setLoadingEmpresas] = useState(true);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(true);
+  const [errorEmpresas, setErrorEmpresas]     = useState(null);
+  const [errorUsuarios, setErrorUsuarios]     = useState(null);
+  const [togglingItem, setTogglingItem]       = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/empresas`, { headers: authHeaders() })
+      .then((r) => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); })
+      .then((data) => setEmpresas(data.datos ?? data))
+      .catch((err) => setErrorEmpresas(err.message))
+      .finally(() => setLoadingEmpresas(false));
+  }, []);
+
+  useEffect(() => {
+    fetch(`${API_URL}/api/usuarios`, { headers: authHeaders() })
+      .then((r) => { if (!r.ok) throw new Error(`Error ${r.status}`); return r.json(); })
+      .then((data) => setUsuarios(data.datos ?? data))
+      .catch((err) => setErrorUsuarios(err.message))
+      .finally(() => setLoadingUsuarios(false));
+  }, []);
+
+  const toggleEmpresa = useCallback(async (id, active) => {
+    setTogglingItem(id);
+    try {
+      const res = await fetch(`${API_URL}/api/empresas/${id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const updated = await res.json();
+      setEmpresas((prev) => prev.map((e) => (e.id === id ? { ...e, ...updated } : e)));
+    } catch (err) {
+      alert(`No se pudo actualizar la empresa: ${err.message}`);
+    } finally {
+      setTogglingItem(null);
+    }
+  }, []);
+
+  const toggleUsuario = useCallback(async (id, active) => {
+    setTogglingItem(id);
+    try {
+      const res = await fetch(`${API_URL}/api/usuarios/${id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const updated = await res.json();
+      setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)));
+    } catch (err) {
+      alert(`No se pudo actualizar el usuario: ${err.message}`);
+    } finally {
+      setTogglingItem(null);
+    }
+  }, []);
+
+  return (
+    <div className="ad-page">
+      <nav className="ad-nav" aria-label="Navegación de secciones">
+        <a href="#empresas" className="ad-nav__link">Empresas</a>
+        <a href="#usuarios" className="ad-nav__link">Usuarios</a>
+      </nav>
+
+      <DashboardSection
+        id="empresas" title="Empresas" items={empresas} type="empresa"
+        loadingItem={togglingItem} isLoading={loadingEmpresas} error={errorEmpresas}
+        onToggle={toggleEmpresa}
+        onCreateNew={() => alert("Crear empresa — pendiente de implementar")}
+        csvFilename="empresas" pdfFilename="Empresas"
+      />
+
+      <DashboardSection
+        id="usuarios" title="Usuarios" items={usuarios} type="usuario"
+        loadingItem={togglingItem} isLoading={loadingUsuarios} error={errorUsuarios}
+        onToggle={toggleUsuario}
+        onCreateNew={() => alert("Crear usuario — pendiente de implementar")}
+        csvFilename="usuarios" pdfFilename="Usuarios"
+        empresas={empresas}
+      />
+    </div>
+  );
+}
+-----------------------
+===== ./frontend/src/pages/superadmin/Usuarios.jsx =====
+import { useState, useEffect, useCallback } from "react";
+import "./superadmin.css";
+
+/**
+ * Usuarios — página de gestión de usuarios para el superadmin.
+ * Ruta: /superadmin/usuarios
+ *
+ * Endpoints:
+ *  GET   /api/companies       → para cruzar company_id → nombre de empresa
+ *  GET   /api/users           → lista de usuarios (requiere rol admin/superadmin)
+ *  PATCH /api/users/:id       → { active: bool }
+ *
+ * Modelo User: { id, company_id, name, email, role, active, remote_allowed }
+ */
+
+const API_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+
+const authHeaders = () => {
+  const token = localStorage.getItem("token");
+  return {
+    "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
+  };
+};
+
+const exportToCSV = (data, filename) => {
+  if (!data.length) return;
+  const headers = Object.keys(data[0]).join(",");
+  const rows    = data.map((row) =>
+    Object.values(row).map((v) => `"${String(v ?? "").replace(/"/g, '""')}"`).join(",")
+  );
+  const blob = new Blob([[headers, ...rows].join("\n")], { type: "text/csv;charset=utf-8;" });
+  const url  = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url; link.download = `${filename}.csv`; link.click();
+  URL.revokeObjectURL(url);
+};
+
+const exportToPDF = (listId, title) => {
+  const el  = document.getElementById(listId);
+  if (!el) return;
+  const win = window.open("", "_blank");
+  win.document.write(`<html><head><title>${title}</title>
+    <style>body{font-family:sans-serif;padding:2rem;color:#1a1a2e}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ddd;padding:.5rem;text-align:left}
+    th{background:#3e35a8;color:white}</style>
+    </head><body>${el.innerHTML}</body></html>`);
+  win.document.close(); win.print();
+};
+
+function UsuarioCard({ usuario, companyName, onToggle, loading }) {
+  const isActive    = usuario.active !== false;
+  const displayName = usuario.name ?? "Sin nombre";
+  const initials    = displayName.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase() ?? "").join("");
+
+  return (
+    <article
+      className={`sa-card ${isActive ? "sa-card--active" : "sa-card--inactive"}`}
+      aria-label={`${displayName}, ${isActive ? "activo" : "inactivo"}`}
+    >
+      <div className="sa-card__logo" aria-hidden="true">
+        {usuario.avatar
+          ? <img src={usuario.avatar} alt={displayName} className="sa-card__logo-img" />
+          : <span className="sa-card__logo-initials">{initials}</span>
+        }
+      </div>
+
+      <div className="sa-card__info">
+        <p className="sa-card__name">{displayName}</p>
+        <p className="sa-card__subtitle">
+          {companyName ?? `Empresa #${usuario.company_id}`}
+        </p>
+      </div>
+
+      <span
+        className={`sa-card__badge ${isActive ? "sa-card__badge--active" : "sa-card__badge--inactive"}`}
+        aria-label={`Estado: ${isActive ? "activo" : "inactivo"}`}
+      >
+        {isActive ? "ACTIVO" : "INACTIVO"}
+      </span>
+
+      <div className="sa-card__actions">
+        <button
+          className={`sa-card__btn ${isActive ? "sa-card__btn--deactivate" : "sa-card__btn--activate"}`}
+          onClick={() => onToggle(usuario.id, !isActive)}
+          disabled={loading === usuario.id}
+          aria-label={`${isActive ? "Desactivar" : "Activar"} usuario ${displayName}`}
+        >
+          {loading === usuario.id ? "Procesando..." : isActive ? "Desactivar usuario" : "Activar usuario"}
+        </button>
+      </div>
+    </article>
+  );
+}
+
+export default function Usuarios() {
+  const [usuarios, setUsuarios]   = useState([]);
+  const [empresas, setEmpresas]   = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError]         = useState(null);
+  const [toggling, setToggling]   = useState(null);
+
+  useEffect(() => {
+    /* Carga usuarios y empresas en paralelo */
+    Promise.all([
+      fetch(`${API_URL}/api/users`,     { headers: authHeaders() }).then((r) => r.json()),
+      fetch(`${API_URL}/api/companies`, { headers: authHeaders() }).then((r) => r.json()),
+    ])
+      .then(([usersData, companiesData]) => {
+        setUsuarios(usersData.datos   ?? usersData);
+        setEmpresas(companiesData.datos ?? companiesData);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  /* Mapa id → nombre de empresa para búsqueda O(1) */
+  const empresaMap = Object.fromEntries(
+    empresas.map((e) => [e.id, e.name ?? `Empresa #${e.id}`])
+  );
+
+  const toggleUsuario = useCallback(async (id, active) => {
+    setToggling(id);
+    try {
+      const res = await fetch(`${API_URL}/api/users/${id}`, {
+        method: "PATCH",
+        headers: authHeaders(),
+        body: JSON.stringify({ active }),
+      });
+      if (!res.ok) throw new Error(`Error ${res.status}`);
+      const updated = await res.json();
+      setUsuarios((prev) => prev.map((u) => (u.id === id ? { ...u, ...updated } : u)));
+    } catch (err) {
+      alert(`No se pudo actualizar el usuario: ${err.message}`);
+    } finally {
+      setToggling(null);
+    }
+  }, []);
+
+  return (
+    <div className="sa-page">
+
+      <div className="sa-header">
+        <h1 className="sa-title">Usuarios</h1>
+        <div className="sa-actions">
+          <button
+            className="iw-btn iw-btn--ghost sa-action-btn"
+            onClick={() => exportToCSV(usuarios, "usuarios")}
+          >
+            Exportar a CSV
+          </button>
+          <button
+            className="iw-btn iw-btn--ghost sa-action-btn"
+            onClick={() => exportToPDF("usuarios-list", "Usuarios")}
+          >
+            Exportar a PDF
+          </button>
+        </div>
+      </div>
+
+      {isLoading && <p className="sa-loading" role="status">Cargando usuarios...</p>}
+      {error     && <p className="sa-error"   role="alert">{error}</p>}
+
+      {!isLoading && !error && (
+        <div className="sa-list" id="usuarios-list" aria-label="Lista de usuarios">
+          {usuarios.length === 0
+            ? <p className="sa-empty">No hay usuarios registrados.</p>
+            : usuarios.map((u) => (
+                <UsuarioCard
+                  key={u.id}
+                  usuario={u}
+                  companyName={empresaMap[u.company_id]}
+                  onToggle={toggleUsuario}
+                  loading={toggling}
+                />
+              ))
+          }
+        </div>
+      )}
+
+    </div>
+  );
 }
 -----------------------
 ===== ./frontend/vite.config.js =====

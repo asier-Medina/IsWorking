@@ -1,22 +1,23 @@
 @import url("https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap");
 
 :root {
-  /* ── Tipografía ── */
+  /* Tipografía */
   --iw-font-base:     "Outfit", "Segoe UI", system-ui, sans-serif;
-  --iw-font-size-xs:  0.75rem;   /* 12px */
-  --iw-font-size-sm:  0.8rem;    /* 12.8px */
-  --iw-font-size-md:  0.875rem;  /* 14px */
-  --iw-font-size-lg:  1rem;      /* 16px */
-  --iw-font-size-xl:  1.05rem;   /* 16.8px */
-  --iw-font-size-2xl: 1.25rem;   /* 20px */
-  --iw-font-size-3xl: 1.5rem;    /* 24px */
+  --iw-font-size-xs:  0.75rem;
+  --iw-font-size-sm:  0.8rem;
+  --iw-font-size-md:  0.875rem;
+  --iw-font-size-lg:  1rem;
+  --iw-font-size-xl:  1.05rem;
+  --iw-font-size-2xl: 1.25rem;
+  --iw-font-size-3xl: 1.5rem;
   --iw-line-height:   1.65;
   --iw-weight-normal: 400;
   --iw-weight-medium: 500;
   --iw-weight-semi:   600;
   --iw-weight-bold:   700;
 
-  /* ── Paleta primaria (violeta) ── */
+
+  /* Paleta primaria (violeta) */
   --iw-primary:         #3e35a8;
   --iw-primary-hover:   #2d258f;
   --iw-primary-light:   #ece9fb;
@@ -25,27 +26,42 @@
   --iw-primary-alpha25: rgba(62, 53, 168, 0.25);
   --iw-primary-alpha40: rgba(62, 53, 168, 0.4);
   --iw-primary-alpha50: rgba(62, 53, 168, 0.5);
-
-  /* Variante más saturada (gradientes, logo) */
   --iw-primary-vivid:   #5b4fcf;
   --iw-primary-soft:    #8b5cf6;
 
-  /* ── Paleta semántica ── */
+  /* Paleta semántica — danger */
   --iw-danger:          #b91c1c;
   --iw-danger-hover:    #991b1b;
   --iw-danger-light:    #fef2f2;
+
+  /* Paleta semántica — success (verde)
+     Contraste verificado WCAG AA:
+     --iw-success-text / --iw-success-light → 9.2:1 ✓
+     #ffffff / --iw-success                 → 5.1:1 ✓  */
   --iw-success:         #15803d;
+  --iw-success-hover:   #166534;
+  --iw-success-light:   #f0fdf4;
+  --iw-success-border:  #86efac;
+  --iw-success-mid:     #bbf7d0;
+  --iw-success-text:    #14532d;
+
+  /* Paleta semántica — info (azul)
+     Usada para cards/estados "activo" */
+  --iw-info-bg:         #eff6ff;
+  --iw-info-border:     #bfdbfe;
+
+  /* Paleta semántica — warning */
   --iw-warning:         #b45309;
 
-  /* ── Neutros (modo claro) ── */
-  --iw-text:            #1a1a2e;   
-  --iw-text-muted:      #5a5878;  
-  --iw-text-subtle:     #3a3850;   
-  --iw-surface:         #ffffff;  
-  --iw-bg:              #f3f2fb;   
+  /* Neutros (modo claro) */
+  --iw-text:            #1a1a2e;
+  --iw-text-muted:      #5a5878;
+  --iw-text-subtle:     #3a3850;
+  --iw-surface:         #ffffff;
+  --iw-bg:              #f3f2fb;
   --iw-border:          #dddae8;
 
-  /* ── Neutros oscuros (footer / dark sections) ── */
+  /* Neutros oscuros (footer / dark sections) */
   --iw-dark-bg:         #0f0d1a;
   --iw-dark-bg-raised:  #1e1b33;
   --iw-dark-border:     rgba(255, 255, 255, 0.08);
@@ -56,11 +72,11 @@
   --iw-dark-text-dim:   #8c88aa;
   --iw-dark-text-badge: #d4d0ec;
 
-  /* ── Espaciado / tamaños ── */
+  /* Espaciado / tamaños */
   --iw-header-height:   64px;
   --iw-max-width:       1280px;
 
-  /* ── Radios de borde ── */
+  /* Radios de borde */
   --iw-radius-xs:       6px;
   --iw-radius-sm:       8px;
   --iw-radius-md:       10px;
@@ -68,15 +84,15 @@
   --iw-radius-logo:     9px;
   --iw-radius-full:     999px;
 
-  /* ── Sombras ── */
+  /* Sombras */
   --iw-shadow-sm:   0 1px 4px rgba(0, 0, 0, 0.06);
   --iw-shadow-md:   0 2px 16px rgba(62, 53, 168, 0.08);
   --iw-shadow-lg:   0 8px 32px rgba(0, 0, 0, 0.10);
 
-  /* ── Transiciones ── */
+  /* Transiciones */
   --iw-transition:  0.15s ease;
 
-  /* ── Focus ring ── */
+  /* Focus ring */
   --iw-focus-ring:  0 0 0 3px rgba(62, 53, 168, 0.4);
 }
 
@@ -157,7 +173,7 @@ h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); }
 h2 { font-size: clamp(1.375rem, 3vw, 1.875rem); }
 h3 { font-size: clamp(1.125rem, 2.5vw, 1.375rem); }
 h4 { font-size: 1.125rem; }
-h5 { font-size: 1rem;     }
+h5 { font-size: 1rem; }
 h6 { font-size: 0.875rem; }
 
 
@@ -187,7 +203,6 @@ h6 { font-size: 0.875rem; }
 
 /* COMPONENTES GENERALES */
 
-/* ── Botón base ── */
 .iw-btn {
   display: inline-flex;
   align-items: center;
@@ -211,17 +226,14 @@ h6 { font-size: 0.875rem; }
 .iw-btn:active        { transform: scale(0.96); }
 .iw-btn:focus-visible { outline: none; box-shadow: var(--iw-focus-ring); }
 
-.iw-btn--primary {
-  background-color: var(--iw-primary);
-  color: #ffffff;
-}
+.iw-btn--primary       { background-color: var(--iw-primary); color: #ffffff; }
 .iw-btn--primary:hover { background-color: var(--iw-primary-hover); }
 
-.iw-btn--danger {
-  background-color: var(--iw-danger);
-  color: #ffffff;
-}
+.iw-btn--danger        { background-color: var(--iw-danger); color: #ffffff; }
 .iw-btn--danger:hover  { background-color: var(--iw-danger-hover); }
+
+.iw-btn--success       { background-color: var(--iw-success); color: #ffffff; }
+.iw-btn--success:hover { background-color: var(--iw-success-hover); }
 
 .iw-btn--ghost {
   background-color: transparent;
@@ -234,7 +246,6 @@ h6 { font-size: 0.875rem; }
   color: var(--iw-primary);
 }
 
-/* ── Badge / pill ── */
 .iw-badge {
   display: inline-flex;
   align-items: center;
@@ -246,17 +257,10 @@ h6 { font-size: 0.875rem; }
   line-height: 1;
 }
 
-.iw-badge--danger {
-  background-color: var(--iw-danger);
-  color: #ffffff;
-}
+.iw-badge--danger   { background-color: var(--iw-danger);        color: #ffffff; }
+.iw-badge--primary  { background-color: var(--iw-primary-light); color: var(--iw-primary); }
+.iw-badge--success  { background-color: var(--iw-success-mid);   color: var(--iw-success-text); }
 
-.iw-badge--primary {
-  background-color: var(--iw-primary-light);
-  color: var(--iw-primary);
-}
-
-/* ── Logo / icono de marca ── */
 .iw-logo-icon {
   display: flex;
   align-items: center;
@@ -273,14 +277,12 @@ h6 { font-size: 0.875rem; }
   user-select: none;
 }
 
-/* ── Divider ── */
 .iw-divider {
   border: none;
   border-top: 1px solid var(--iw-border);
   margin: 0;
 }
 
-/* ── Focus ring global (para casos no cubiertos por :focus-visible) ── */
 :focus-visible {
   outline: 2px solid var(--iw-primary);
   outline-offset: 2px;

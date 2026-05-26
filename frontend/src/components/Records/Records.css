@@ -1,0 +1,167 @@
+/* Reset */
+.records *,
+.records *::before,
+.records *::after {
+  box-sizing: border-box;
+}
+
+/* Tarjeta principal */
+.records {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+  max-width: 380px;
+  margin-inline: auto;
+  padding: 1.75rem;
+  background-color: var(--iw-surface);
+  border: 1.5px solid var(--iw-border);
+  border-radius: var(--iw-radius-lg);
+  box-shadow: var(--iw-shadow-lg);
+  font-family: var(--iw-font-base);
+}
+
+/* Título de sección */
+.records__section-title {
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  margin: 0 0 1rem;
+}
+
+/* Sección usuario */
+.records__user-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+/* Avatar circular con iniciales */
+.records__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 2px solid var(--iw-border);
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+  font-size: var(--iw-font-size-lg);
+  font-weight: var(--iw-weight-bold);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.records__user-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.records__user-name {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-semi);
+  color: var(--iw-text);
+  line-height: 1.3;
+}
+
+.records__user-email {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+}
+
+.records__user-role {
+  font-size: var(--iw-font-size-xs);
+  color: var(--iw-primary);
+  font-weight: var(--iw-weight-medium);
+  text-transform: capitalize;
+}
+
+.records__user-empty {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+}
+
+/* Divisor */
+.records__divider {
+  border: none;
+  border-top: 1.5px solid var(--iw-border);
+  margin: 0;
+}
+
+/* Tabla de fichajes */
+.records__empty {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  margin: 0;
+}
+
+.records__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.records__row {
+  border-bottom: 1px solid var(--iw-border);
+}
+
+.records__row:last-child {
+  border-bottom: none;
+}
+
+.records__label,
+.records__value {
+  padding: 0.5rem 0;
+  font-size: var(--iw-font-size-md);
+  vertical-align: middle;
+}
+
+.records__label {
+  color: var(--iw-text-muted);
+  font-weight: var(--iw-weight-normal);
+  width: 55%;
+}
+
+.records__value {
+  color: var(--iw-text);
+  font-weight: var(--iw-weight-medium);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Total horas */
+.records__total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.25rem;
+}
+
+.records__total-label {
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  letter-spacing: 0.02em;
+}
+
+.records__total-value {
+  font-size: var(--iw-font-size-xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .records {
+    padding: 1.25rem;
+    max-width: 100%;
+  }
+
+  .records__avatar {
+    width: 48px;
+    height: 48px;
+    font-size: var(--iw-font-size-md);
+  }
+}

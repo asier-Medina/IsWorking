@@ -1,0 +1,10 @@
+/* Botón cancelar — variante específica de esta modal */
+.cm-btn--cancel {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+  border: none;
+}
+
+.cm-btn--cancel:not(:disabled):hover {
+  background-color: var(--iw-primary-border);
+}
