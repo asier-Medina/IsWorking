@@ -1,6 +1,7 @@
 import { Op } from 'sequelize'
 import TimeRecord from '../models/postgres/TimeRecord.js'
 import User from '../models/postgres/User.js'
+import Schedule from '../models/postgres/Schedule.js'
 import logsService from './logs.service.js'
 
 const NEXT_VALID_TYPE = {
@@ -78,7 +79,7 @@ const getById = async (id, userId, role) => {
   return record
 }
 
-const create = async ({ userId, type, mode, latitude, longitude, accuracy, scheduleId }) => {
+const create = async ({ userId, type, mode, latitude, longitude, accuracy }) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
@@ -101,6 +102,17 @@ const create = async ({ userId, type, mode, latitude, longitude, accuracy, sched
     throw error
   }
 
+  const hoyLocal = new Date().toISOString().split('T')[0]
+  const scheduleHoy = await Schedule.findOne({
+    where: {
+      user_id: userId,
+      work_date: hoyLocal
+    }
+  })
+
+  const scheduleId = scheduleHoy ? scheduleHoy.id : null
+
+
   const record = await TimeRecord.create({
     user_id: userId,
     type,
@@ -109,19 +121,15 @@ const create = async ({ userId, type, mode, latitude, longitude, accuracy, sched
     longitude,
     accuracy,
     schedule_id: scheduleId || null,
-    timestamp: new Date()
+    timestamp: new Date(),
   })
 
   try {
     await logsService.createRecordLog({
       record_id: record.id,
       user_id: userId,
-      action: 'create',
-      type,
-      mode,
-      latitude,
-      longitude,
-      accuracy
+      type, mode, latitude, longitude, accuracy,
+      timestamp: record.timestamp
     })
   } catch (err) {
     console.error('Error escribiendo log de fichaje:', err.message)

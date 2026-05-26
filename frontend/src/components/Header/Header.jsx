@@ -1,51 +1,45 @@
 import { useState } from "react";
 import "./Header.css";
+import ChangePassword from "../ChangePassword/changePassword"; // 🎯 Ruta a tu componente real
 
-/* ios = contorno, 3e35a8 = morado primario (contraste 9.4:1 sobre blanco ✓) */
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/3e35a8/${name}.png`;
 
 const defaultNavLinks = [
-  { label: "Mis fichajes", href: "#", icon: ICONS8("time-card") },
-  { label: "Ausencias",    href: "#", icon: ICONS8("planner") },
-  { label: "Equipo",       href: "#", icon: ICONS8("conference-call") },
+  { label: "Mis fichajes", href: "historial", icon: ICONS8("time-card") },
+  { label: "Ausencias", href: "#", icon: ICONS8("planner") },
+  { label: "Equipo", href: "#", icon: ICONS8("conference-call") },
 ];
 
-const dropdownItems = [
-  { label: "Mi perfil",      icon: ICONS8("user"),     href: "#" },
-  { label: "Mis documentos", icon: ICONS8("document"), href: "#" },
-  { label: "Configuración",  icon: ICONS8("settings"), href: "#" },
-];
-
-/**
- * Header — consume el modelo User del backend:
- *  user.name  (antes nombre)
- *  user.email
- *  user.role  (antes rol) → valores: employee | admin | superadmin
- */
 export default function Header({
-  user = null,
+  user,
   companyName = "IsWorking",
   navLinks = defaultNavLinks,
+  onLogout,
 }) {
-  const [menuOpen, setMenuOpen]       = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false); // 🎯 Controla el modal
 
-  const initials = user?.name
-    ? user.name.split(" ").slice(0, 2).map((n) => n[0]?.toUpperCase()).join("")
-    : "?";
+  const userName = user?.name || "Cargando...";
+  const userRole = user?.role || "Empleado";
+
+  const initials = userName
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("")
+    .toUpperCase();
 
   return (
     <header className="header">
       <div className="header__inner">
 
-        {/* Logo */}
         <a href="/" className="header__brand" aria-label="Ir a inicio">
           <span className="header__logo-icon" aria-hidden="true">IW</span>
           <span className="header__company">{companyName}</span>
         </a>
 
-        {/* Nav desktop */}
         <nav className="header__nav" aria-label="Navegación principal">
           {navLinks.map((link) => (
             <a key={link.label} href={link.href} className="header__nav-link">
@@ -57,10 +51,8 @@ export default function Header({
           ))}
         </nav>
 
-        {/* Acciones */}
         <div className="header__actions">
 
-          {/* Notificaciones */}
           <button className="header__icon-btn" aria-label="Ver notificaciones (3 sin leer)">
             <img src={ICONS8("alarm")} alt="" aria-hidden="true" className="header__icon-img" />
             <span className="header__badge" aria-hidden="true">3</span>
@@ -76,7 +68,7 @@ export default function Header({
               aria-haspopup="menu"
             >
               {user?.avatar
-                ? <img src={user.avatar} alt={user.name} className="header__avatar-img" />
+                ? <img src={user.avatar} alt={userName} className="header__avatar-img" />
                 : <span aria-hidden="true">{initials}</span>
               }
             </button>
@@ -84,21 +76,36 @@ export default function Header({
             {profileOpen && (
               <div className="header__dropdown" role="menu">
                 <div className="header__dropdown-user">
-                  <strong className="header__dropdown-name">{user?.name ?? "Usuario"}</strong>
-                  <span className="header__dropdown-role">{user?.role ?? ""}</span>
+                  <strong className="header__dropdown-name">{userName}</strong>
+                  <span className="header__dropdown-role">{userRole}</span>
                 </div>
+
                 <hr className="header__dropdown-divider" />
-                {dropdownItems.map((item) => (
-                  <a key={item.label} href={item.href} className="header__dropdown-item" role="menuitem">
-                    <img src={item.icon} alt="" aria-hidden="true" className="header__dropdown-icon" />
-                    {item.label}
-                  </a>
-                ))}
+
+                <button
+                  onClick={() => {
+                    setPasswordModalOpen(true);
+                    setProfileOpen(false); // Cierra el menú para limpiar la pantalla
+                  }}
+                  className="header__dropdown-item"
+                  style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', color: '#c9d1d9' }}
+                  role="menuitem"
+                >
+                  <img src={ICONS8("settings")} alt="" aria-hidden="true" className="header__dropdown-icon" />
+                  Cambiar contraseña
+                </button>
+
                 <hr className="header__dropdown-divider" />
-                <a href="#" className="header__dropdown-item header__dropdown-item--danger" role="menuitem">
+
+                <button
+                  onClick={onLogout}
+                  className="header__dropdown-item header__dropdown-item--danger"
+                  style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
+                  role="menuitem"
+                >
                   <img src={ICONS8("exit")} alt="" aria-hidden="true" className="header__dropdown-icon" />
                   Cerrar sesión
-                </a>
+                </button>
               </div>
             )}
           </div>
@@ -143,6 +150,11 @@ export default function Header({
           </a>
         ))}
       </nav>
+
+      <ChangePassword
+        isOpen={passwordModalOpen}
+        onClose={() => setPasswordModalOpen(false)}
+      />
     </header>
   );
 }
