@@ -6,10 +6,14 @@ const router = Router()
 
 router.use(protect)
 
+// Ruta propia del usuario — no necesita isAdmin
+router.patch('/me/password', userController.changePasswordHandler)
+
+// Rutas de admin
 router.get('/',              isAdmin, userController.getUsers)
-router.get('/:id',           isAdmin, userController.getUserById)      // ← nuevo
+router.get('/:id',           isAdmin, userController.getUserById)
 router.post('/',             isAdmin, userController.createEmployee)
-router.patch('/:id',         isAdmin, userController.updateEmployee)   // patch en vez de put
+router.patch('/:id',         isAdmin, userController.updateEmployee)
 router.patch('/:id/status',  isAdmin, userController.toggleEmployeeStatus)
 
 export default router

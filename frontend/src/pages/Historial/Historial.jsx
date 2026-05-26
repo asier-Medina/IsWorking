@@ -6,7 +6,7 @@ export default function Historial() {
     const [records, setRecords] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    // 🎯 Unificamos el nombre a selectedMonth
+
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
 
     useEffect(() => {
@@ -41,7 +41,7 @@ export default function Historial() {
         return date.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     };
 
-    // 🎯 Filtrado corregido usando de forma segura 'new Date' y 'selectedMonth'
+
     const registerFilter = records.filter((r) => {
         const dateRegister = new Date(r.timestamp);
         return (
@@ -85,7 +85,6 @@ export default function Historial() {
                 <div className="record__table__wrapper">
                     <table className="record__tabla">
                         <thead>
-                            {/* 🎯 Corrección de la estructura de cabecera estándar HTML */}
                             <tr>
                                 <th>Fecha</th>
                                 <th>Hora</th>
@@ -94,7 +93,6 @@ export default function Historial() {
                                 <th>Coordenadas (GPS)</th>
                             </tr>
                         </thead>
-                        {/* 🎯 Cambiado thbody por tbody */}
                         <tbody>
                             {registerFilter.map((record) => {
                                 const configType = typeMap[record.type] || { text: record.type, class: "" };
@@ -103,7 +101,6 @@ export default function Historial() {
                                         <td><strong>{formatDate(record.timestamp)}</strong></td>
                                         <td className="record__time">{formatHour(record.timestamp)}</td>
                                         <td>
-                                            {/* 🎯 Corregidos los strings de las clases dinámicas */}
                                             <span className={`badge ${configType.class}`}>{configType.text}</span>
                                         </td>
                                         <td>

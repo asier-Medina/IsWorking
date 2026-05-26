@@ -141,3 +141,38 @@ export const toggleStatus = async (id, companyId, activeStatus, adminId) => {
 
   return { id: user.id, name: user.name, active: activeStatus }
 }
+export const changePassword = async (id, { currentPassword, newPassword }) => {
+  const user = await User.findByPk(id)
+
+  if (!user) {
+    const error = new Error('Usuario no encontrado')
+    error.statusCode = 404
+    throw error
+  }
+
+  const valid = await bcrypt.compare(currentPassword, user.password_hash)
+  if (!valid) {
+    const error = new Error('La contraseña actual es incorrecta')
+    error.statusCode = 401
+    throw error
+  }
+
+  if (newPassword.length < 6) {
+    const error = new Error('La nueva contraseña debe tener al menos 6 caracteres')
+    error.statusCode = 400
+    throw error
+  }
+
+  const password_hash = await bcrypt.hash(newPassword, 10)
+  await user.update({ password_hash })
+
+  return { message: 'Contraseña actualizada correctamente' }
+}
+
+export const getAllUsers = async () => {
+  const users = await User.findAll({
+    where: { role: { [Op.in]: ['admin', 'employee'] } },
+    order: [['company_id', 'ASC'], ['created_at', 'DESC']]
+  })
+  return users.map(user => cleanUser(user))
+}

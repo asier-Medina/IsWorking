@@ -3,8 +3,15 @@ import * as UserService from '../services/user.service.js'
 // GET /api/users
 export const getUsers = async (req, res, next) => {
   try {
-    const { company_id } = req.user
-    const users = await UserService.getAllByCompany(company_id)
+    const { company_id, role } = req.user
+
+    let users
+    if (role === 'superadmin') {
+      users = await UserService.getAllUsers()
+    } else {
+      users = await UserService.getAllByCompany(company_id)
+    }
+
     res.json({ success: true, data: users })
   } catch (error) {
     next(error)
@@ -77,6 +84,25 @@ export const toggleEmployeeStatus = async (req, res, next) => {
       message: `Empleado ${active ? 'activado' : 'desactivado'} correctamente`,
       data: result
     })
+  } catch (error) {
+    next(error)
+  }
+}
+// PATCH /api/users/me/password
+export const changePasswordHandler = async (req, res, next) => {
+  try {
+    const { id } = req.user
+    const { currentPassword, newPassword } = req.body
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'currentPassword y newPassword son obligatorios'
+      })
+    }
+
+    const result = await UserService.changePassword(id, { currentPassword, newPassword })
+    res.json({ success: true, message: result.message })
   } catch (error) {
     next(error)
   }

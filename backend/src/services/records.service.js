@@ -191,11 +191,11 @@ const getStatus = async (userId) => {
   }
 }
 
-export default {
-  getAll,
-  getById,
-  create,
-  update,
-  remove,
-  getStatus
+const getMe = async (userId) => {
+  return await TimeRecord.findAll({
+    where: { user_id: userId },
+    order: [['timestamp', 'DESC']]
+  })
 }
+
+export default { getAll, getById, create, update, remove, getStatus, getMe }

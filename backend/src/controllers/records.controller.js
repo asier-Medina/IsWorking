@@ -119,5 +119,15 @@ const getStatus = async (req, res, next) => {
     next(error)
   }
 }
+const getMe = async (req, res, next) => {
+  try {
+    const { id: userId } = req.user
+    const records = await recordsService.getMe(userId)
+    res.json(records)
+  } catch (error) {
+    next(error)
+  }
+}
 
-export default { getAll, getById, create, sync, update, remove, getStatus }
+export default { getAll, getById, create, sync, update, remove, getStatus, getMe }
+
