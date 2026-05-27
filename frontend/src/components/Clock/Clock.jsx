@@ -2,18 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import api from "../../lib/api";
 import "./Clock.css";
 
-/**
- * Clock — componente de fichaje conectado al backend.
- *
- * Endpoint: POST /api/records
- * Auth:     cookie httpOnly (access_token), vía cliente api + withCredentials
- * Tipos:    entry | break_start | break_end | exit
- *
- * Props:
- *  - mode:     "office" | "remote"
- *  - onRecord: (record) => void  callback con la respuesta del backend
- */
-
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/ffffff/${name}.png`;
 
@@ -36,26 +24,15 @@ const formatTime = (s) =>
 
 const getLocation = () =>
   new Promise((resolve) => {
-    if (!navigator.geolocation) {
-      return resolve(null);
-    }
-
+    if (!navigator.geolocation) return resolve(null);
     navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        resolve({
-          latitude: coords.latitude,
-          longitude: coords.longitude,
-          accuracy: coords.accuracy,
-        });
-      },
-      () => {
-        resolve(null);
-      },
-      {
-        enableHighAccuracy: false,
-        timeout: 15000,
-        maximumAge: 60000
-      }
+      ({ coords }) => resolve({
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+        accuracy: coords.accuracy,
+      }),
+      () => resolve(null),
+      { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
     );
   });
 
@@ -65,14 +42,12 @@ const postRecord = async (type, mode = "office") => {
   return data;
 };
 
-/** Mapea el último fichaje del día al estado de la UI. */
 const lastTypeToUiStatus = (lastType) => {
   if (!lastType || lastType === "exit") return "idle";
   if (lastType === "break_start") return "break";
   return "working";
 };
 
-/** Suma segundos trabajados/descanso a partir de los fichajes de hoy. */
 const computeElapsedSeconds = (todayRecords = []) => {
   let work = 0;
   let breakTime = 0;
@@ -121,27 +96,14 @@ const computeElapsedSeconds = (todayRecords = []) => {
   return { work: Math.floor(work), break: Math.floor(breakTime) };
 };
 
-export default function Clock({ mode = "office", initialStatus = null }) {
-
-  const mapTypeToStatus = (type) => {
-    if (!type) return "idle"
-    if (type === "entry" || type === "break_end") return "working"
-    if (type === "break_start") return "break"
-    return "idle"
-  }
-
-  const [status, setStatus] = useState(
-    initialStatus?.lastRecord
-      ? mapTypeToStatus(initialStatus.lastRecord.type)
-      : "idle"
-  )
-  const [status, setStatus] = useState("idle");
-  const [workSeconds, setWorkSeconds] = useState(0);
+export default function Clock({ mode = "office" }) {
+  const [status, setStatus]             = useState("idle");
+  const [workSeconds, setWorkSeconds]   = useState(0);
   const [breakSeconds, setBreakSeconds] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]           = useState(false);
   const [initializing, setInitializing] = useState(true);
-  const [error, setError] = useState(null);
-  const intervalRef = useRef(null);
+  const [error, setError]               = useState(null);
+  const intervalRef                     = useRef(null);
 
   useEffect(() => {
     const loadStatus = async () => {
@@ -175,13 +137,12 @@ export default function Clock({ mode = "office", initialStatus = null }) {
     setLoading(true);
     setError(null);
     try {
-      const record = await postRecord(type, mode);
+      await postRecord(type, mode);
       setStatus(nextStatus);
       if (nextStatus === "idle") {
         setWorkSeconds(0);
         setBreakSeconds(0);
       }
-      onRecord?.(record);    /* notifica a App.jsx con la respuesta del backend */
     } catch (err) {
       setError(err.response?.data?.error || err.message);
     } finally {
@@ -189,18 +150,18 @@ export default function Clock({ mode = "office", initialStatus = null }) {
     }
   };
 
-  const handleEntry = () => handleRecord("entry", "working");
-  const handleExit = () => handleRecord("exit", "idle");
+  const handleEntry      = () => handleRecord("entry",       "working");
+  const handleExit       = () => handleRecord("exit",        "idle");
   const handleBreakStart = () => handleRecord("break_start", "break");
-  const handleBreakEnd = () => handleRecord("break_end", "working");
+  const handleBreakEnd   = () => handleRecord("break_end",   "working");
 
-  const progress = Math.min(workSeconds / WORK_DAY_SECONDS, 1);
+  const progress   = Math.min(workSeconds / WORK_DAY_SECONDS, 1);
   const dashOffset = RING_CIRCUMFERENCE * (1 - progress);
 
   const STATE = {
-    idle: { label: "Sin fichar", dotClass: "clock__dot--idle", ringClass: "clock__ring--idle" },
-    working: { label: "Trabajando", dotClass: "clock__dot--working", ringClass: "clock__ring--working" },
-    break: { label: "En descanso", dotClass: "clock__dot--break", ringClass: "clock__ring--break" },
+    idle:    { label: "Sin fichar",  dotClass: "clock__dot--idle",    ringClass: "clock__ring--idle"    },
+    working: { label: "Trabajando",  dotClass: "clock__dot--working", ringClass: "clock__ring--working" },
+    break:   { label: "En descanso", dotClass: "clock__dot--break",   ringClass: "clock__ring--break"   },
   };
   const current = STATE[status];
 
@@ -240,12 +201,9 @@ export default function Clock({ mode = "office", initialStatus = null }) {
         </div>
       )}
 
-      {error && (
-        <p className="clock__error" role="alert">{error}</p>
-      )}
+      {error && <p className="clock__error" role="alert">{error}</p>}
 
       <div className="clock__actions">
-
         {status === "idle" && (
           <button
             className="clock__btn clock__btn--entry"
@@ -293,7 +251,6 @@ export default function Clock({ mode = "office", initialStatus = null }) {
             {initializing ? "Cargando..." : loading ? "Registrando..." : "Finalizar descanso"}
           </button>
         )}
-
       </div>
 
       {status !== "idle" && (
