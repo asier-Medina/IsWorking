@@ -1,6 +1,6 @@
 import { useState } from "react";
 import "./Header.css";
-import ChangePassword from "../ChangePassword/changePassword"; // 🎯 Ruta a tu componente real
+import ChangePassword from "../ChangePassword/changePassword";
 
 const ICONS8 = (name, size = 48) =>
   `https://img.icons8.com/ios/${size}/3e35a8/${name}.png`;
@@ -19,7 +19,7 @@ export default function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false); // 🎯 Controla el modal
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false); 
 
   const userName = user?.name || "Cargando...";
   const userRole = user?.role || "Empleado";
