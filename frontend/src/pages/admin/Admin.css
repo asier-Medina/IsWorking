@@ -28,6 +28,7 @@
   width: 250px;
   align-items: flex-start;
   padding: 24px;
+  transition: width 0.9s ease;
 }
 
 /* Fila superior: title + toggle */
@@ -134,10 +135,6 @@
   overflow-x: auto;
   background-color: var(--iw-surface);
   transition: margin-left 0.3s ease;
-}
-
-.admin-layout--expanded .admin-content {
-  margin-left: 250px;
 }
 
 /* ── Estilos de página ── */
@@ -263,7 +260,7 @@
 }
 
 /* ── Responsive ── */
-@media (max-width: 800px) {
+@media (max-width: 480px) {
   .admin-sidebar {
     position: fixed;
     top: 0;
@@ -275,10 +272,6 @@
   .admin-content {
     margin-left: 60px;
     padding: 24px 16px;
-  }
-
-  .admin-layout--expanded .admin-content {
-    margin-left: 250px;
   }
 
   .admin-form {
