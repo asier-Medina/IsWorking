@@ -88,10 +88,15 @@
 }
 
 /* Activo → fondo info azul (--iw-info-*) */
-.sa-card--active {
+.sa-card--active{
   background-color: var(--iw-info-bg);
   border-color: var(--iw-info-border);
 }
+
+.sa-card--active:hover, .sa-card--active:hover {
+  border-color: var(--iw-primary););
+}
+
 
 /* Inactivo → fondo success verde claro (--iw-success-light) */
 .sa-card--inactive {
@@ -272,7 +277,6 @@
 .sa-sidebar__nav a.active { background: var(--iw-primary); color: white; }
 
 .sa-logout {
-  margin-top: auto;
   border: none;
   padding: 11px 12px;
   border-radius: 10px;
@@ -281,15 +285,39 @@
   color: white;
   font-weight: 600;
   font-family: var(--iw-font-base);
+  position: fixed;
+  bottom: 0;
+  margin-bottom: 16px;
 }
 
 .sa-content {
   flex: 1;
   padding: 32px;
   overflow-x: auto;
+  background-color: var(--iw-surface);
 }
 
 @media (max-width: 800px) {
   .sa-layout { flex-direction: column; }
   .sa-sidebar { width: auto; }
+}
+
+@media (max-width: 800px) {
+  .sa-layout { flex-direction: column; }
+  
+  .sa-sidebar {
+    width: auto;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    overflow: hidden;
+    max-height: 500px;
+    transition: max-height 0.3s ease, padding 0.3s ease;
+  }
+
+  .sa-sidebar--collapsed {
+    max-height: 76px;
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
 }
