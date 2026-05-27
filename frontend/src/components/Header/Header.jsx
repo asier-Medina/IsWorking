@@ -19,7 +19,7 @@ export default function Header({
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [passwordModalOpen, setPasswordModalOpen] = useState(false); 
+  const [passwordModalOpen, setPasswordModalOpen] = useState(false);
 
   const userName = user?.name || "Cargando...";
   const userRole = user?.role || "Empleado";
@@ -85,10 +85,9 @@ export default function Header({
                 <button
                   onClick={() => {
                     setPasswordModalOpen(true);
-                    setProfileOpen(false); // Cierra el menú para limpiar la pantalla
+                    setProfileOpen(false);
                   }}
                   className="header__dropdown-item"
-                  style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer', color: '#c9d1d9' }}
                   role="menuitem"
                 >
                   <img src={ICONS8("settings")} alt="" aria-hidden="true" className="header__dropdown-icon" />
@@ -100,7 +99,6 @@ export default function Header({
                 <button
                   onClick={onLogout}
                   className="header__dropdown-item header__dropdown-item--danger"
-                  style={{ width: '100%', border: 'none', background: 'none', textAlign: 'left', cursor: 'pointer' }}
                   role="menuitem"
                 >
                   <img src={ICONS8("exit")} alt="" aria-hidden="true" className="header__dropdown-icon" />

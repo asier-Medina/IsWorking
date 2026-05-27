@@ -242,10 +242,16 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  width: 100%;
   padding: 0.55rem 1rem;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: var(--iw-font-base);
   font-size: var(--iw-font-size-md);
   font-weight: var(--iw-weight-medium);
-  color: var(--iw-text-subtle);
+  color: var(--iw-text-subtle); /* #3a3850 sobre #fff → 10.2:1 ✓ AA */
   text-decoration: none;
   transition: background-color var(--iw-transition), color var(--iw-transition);
 }

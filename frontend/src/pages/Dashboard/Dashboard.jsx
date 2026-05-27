@@ -15,12 +15,11 @@ export default function Dashboard() {
   const [initialStatus, setInitialStatus] = useState(null)
   const [loadingStatus, setLoadingStatus] = useState(true)
 
-  // Cambiar contraseña
-  const [showPwd, setShowPwd]         = useState(false)
-  const [pwdForm, setPwdForm]         = useState({ currentPassword: '', newPassword: '' })
-  const [pwdError, setPwdError]       = useState(null)
-  const [pwdOk, setPwdOk]             = useState(false)
-  const [pwdLoading, setPwdLoading]   = useState(false)
+  const [showPwd, setShowPwd]       = useState(false)
+  const [pwdForm, setPwdForm]       = useState({ currentPassword: '', newPassword: '' })
+  const [pwdError, setPwdError]     = useState(null)
+  const [pwdOk, setPwdOk]           = useState(false)
+  const [pwdLoading, setPwdLoading] = useState(false)
 
   useEffect(() => {
     api.get('/records/status')
@@ -47,12 +46,12 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+    <div className="dashboard">
       <Header user={user} navLinks={navLinks} onLogout={logout} />
 
       <main className="app-main">
         {loadingStatus ? (
-          <p style={{ textAlign: 'center', color: 'var(--iw-text-muted)' }}>Cargando...</p>
+          <p className="iw-text-muted dashboard__loading">Cargando...</p>
         ) : (
           <Clock
             mode={user?.remote_allowed ? 'remote' : 'office'}
@@ -60,67 +59,46 @@ export default function Dashboard() {
           />
         )}
 
-        {/* Cambiar contraseña */}
-        <div style={{ maxWidth: 420, margin: '1.5rem auto 0', textAlign: 'center' }}>
+        <div className="dashboard__pwd-wrapper">
           <button
+            className="iw-btn iw-btn--primary"
             onClick={() => { setShowPwd(p => !p); setPwdError(null); setPwdOk(false) }}
-            style={{
-              background: 'none', border: 'none', cursor: 'pointer',
-              color: 'var(--iw-text-muted)', fontSize: 'var(--iw-font-size-sm)',
-              textDecoration: 'underline'
-            }}
           >
             {showPwd ? 'Cancelar' : 'Cambiar contraseña'}
           </button>
 
           {showPwd && (
-            <form
-              onSubmit={handlePwdSubmit}
-              style={{
-                marginTop: '1rem',
-                background: 'var(--iw-surface)',
-                border: '1.5px solid var(--iw-border)',
-                borderRadius: 'var(--iw-radius-md)',
-                padding: '1.25rem',
-                display: 'flex', flexDirection: 'column', gap: '0.75rem',
-                textAlign: 'left'
-              }}
-            >
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 600, fontSize: 'var(--iw-font-size-md)' }}>
+            <form className="dashboard__pwd-form" onSubmit={handlePwdSubmit}>
+              <label className="dashboard__pwd-label">
                 Contraseña actual
                 <input
+                  className="dashboard__pwd-input"
                   type="password"
                   value={pwdForm.currentPassword}
                   onChange={e => setPwdForm(p => ({ ...p, currentPassword: e.target.value }))}
                   required
-                  style={{ padding: '0.6rem', borderRadius: 'var(--iw-radius-sm)', border: '1.5px solid var(--iw-border)', fontFamily: 'inherit', fontSize: 'var(--iw-font-size-md)' }}
                 />
               </label>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', fontWeight: 600, fontSize: 'var(--iw-font-size-md)' }}>
+              <label className="dashboard__pwd-label">
                 Nueva contraseña
                 <input
+                  className="dashboard__pwd-input"
                   type="password"
                   value={pwdForm.newPassword}
                   onChange={e => setPwdForm(p => ({ ...p, newPassword: e.target.value }))}
                   required
                   minLength={6}
-                  style={{ padding: '0.6rem', borderRadius: 'var(--iw-radius-sm)', border: '1.5px solid var(--iw-border)', fontFamily: 'inherit', fontSize: 'var(--iw-font-size-md)' }}
                 />
               </label>
 
-              {pwdError && <p style={{ color: 'var(--iw-danger)', fontSize: 'var(--iw-font-size-sm)', margin: 0 }}>{pwdError}</p>}
-              {pwdOk    && <p style={{ color: 'var(--iw-success)', fontSize: 'var(--iw-font-size-sm)', margin: 0 }}>✓ Contraseña actualizada</p>}
+              {pwdError && <p className="iw-text-danger dashboard__pwd-msg">{pwdError}</p>}
+              {pwdOk    && <p className="iw-text-success dashboard__pwd-msg">Contraseña actualizada</p>}
 
               <button
                 type="submit"
+                className="iw-btn iw-btn--primary"
                 disabled={pwdLoading}
-                style={{
-                  padding: '0.65rem', borderRadius: 'var(--iw-radius-sm)',
-                  border: 'none', background: 'var(--iw-primary)', color: '#fff',
-                  fontFamily: 'inherit', fontWeight: 600, cursor: 'pointer',
-                  fontSize: 'var(--iw-font-size-md)', opacity: pwdLoading ? 0.7 : 1
-                }}
               >
                 {pwdLoading ? 'Guardando...' : 'Actualizar contraseña'}
               </button>

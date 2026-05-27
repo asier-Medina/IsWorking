@@ -8,7 +8,7 @@ const ICONS8 = (name, size = 48) =>
 const ICONS = {
   enter: ICONS8("enter-2"),
   exit: ICONS8("exit"),
-  pause: ICONS8("pause-button"),
+  pause: ICONS8("pause"),
   play: ICONS8("play-button-circled"),
   clock: ICONS8("clock", 32),
   coffee: ICONS8("coffee-to-go"),

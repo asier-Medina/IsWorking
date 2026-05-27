@@ -96,7 +96,7 @@ export default function Empleados() {
       <header className="admin-page__header">
         <div>
           <h1>Empleados</h1>
-          <p>Gestiona los empleados de tu empresa.</p>
+          <p>Gestiona los empleados de tu empresa</p>
         </div>
 
         <button
