@@ -55,11 +55,3 @@
   font-size: var(--iw-font-size-sm);
   text-align: center;
 }
-
-.dashboard__pwd-wrapper {
-    display: flex!important;
-    flex-direction: column!important;
-    align-items: center!important;    
-    justify-content: center!important;
-    margin: 16px 0 0 0!important;
-}
