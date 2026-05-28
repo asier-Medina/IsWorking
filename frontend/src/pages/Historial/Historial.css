@@ -1,0 +1,304 @@
+/* Sección principal */
+
+.record {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+
+/* Cabecera: título + filtro */
+
+.record__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.record__header h2 {
+  font-size: var(--iw-font-size-3xl);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text);
+  line-height: 1.2;
+}
+
+
+/* Filtro de mes */
+
+.record__filter {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.record__filter label {
+  font-size: var(--iw-font-size-sm);
+  font-weight: var(--iw-weight-medium);
+  color: var(--iw-text-muted);
+  white-space: nowrap;
+}
+
+/* Select */
+#select-month {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 0.45rem 2.5rem 0.45rem 0.875rem;
+  border: 1.5px solid var(--iw-border);
+  border-radius: var(--iw-radius-full);
+  background-color: var(--iw-surface);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a5878' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  font-family: var(--iw-font-base);
+  font-size: var(--iw-font-size-md);
+  font-weight: var(--iw-weight-medium);
+  color: var(--iw-text);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color var(--iw-transition),
+    box-shadow var(--iw-transition),
+    background-color var(--iw-transition);
+  min-width: 140px;
+}
+
+#select-month:hover {
+  border-color: var(--iw-primary-border);
+  background-color: var(--iw-primary-light);
+}
+
+#select-month:focus-visible,
+#select-month:focus {
+  outline: none;
+  border-color: var(--iw-primary);
+  box-shadow: var(--iw-focus-ring);
+}
+
+
+/* Estados vacío / cargando / error */
+
+.record__empty,
+.record__loading,
+.record__error {
+  padding: 2rem 1.5rem;
+  border-radius: var(--iw-radius-lg);
+  font-size: var(--iw-font-size-md);
+  text-align: center;
+}
+
+.record__empty,
+.record__loading {
+  background-color: var(--iw-surface);
+  color: var(--iw-text-muted);
+  border: 1.5px dashed var(--iw-border);
+}
+
+.record__error {
+  background-color: var(--iw-danger-light);
+  color: var(--iw-danger);
+  border: 1.5px solid #fecaca; /* red-200 */
+  font-weight: var(--iw-weight-medium);
+}
+
+
+/* Wrapper de tabla (scroll horizontal en móvil)  */
+
+.record__table__wrapper {
+  background-color: var(--iw-surface);
+  border: 1px solid var(--iw-border);
+  border-radius: var(--iw-radius-lg);
+  box-shadow: var(--iw-shadow-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+/* Tabla */
+
+.record__tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--iw-font-size-md);
+  min-width: 540px; /* garantiza scroll antes de colapsar */
+}
+
+
+/* Cabecera */
+.record__tabla thead tr {
+  border-bottom: 2px solid var(--iw-border);
+}
+
+.record__tabla thead th {
+  padding: 0.875rem 1rem;
+  text-align: left;
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  color: var(--iw-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  background-color: var(--iw-bg);
+}
+
+/* Primera y última cabecera con radio */
+.record__tabla thead th:first-child {
+  border-radius: var(--iw-radius-lg) 0 0 0;
+  padding-left: 1.25rem;
+}
+.record__tabla thead th:last-child {
+  border-radius: 0 var(--iw-radius-lg) 0 0;
+  padding-right: 1.25rem;
+}
+
+
+/* Filas */
+.record__tabla tbody tr {
+  border-bottom: 1px solid var(--iw-border);
+  transition: background-color var(--iw-transition);
+}
+
+.record__tabla tbody tr:last-child {
+  border-bottom: none;
+}
+
+.record__tabla tbody tr:hover {
+  background-color: var(--iw-primary-light);
+}
+
+.record__tabla tbody td {
+  padding: 0.75rem 1rem;
+  vertical-align: middle;
+  color: var(--iw-text);
+  white-space: nowrap;
+}
+
+.record__tabla tbody td:first-child { padding-left: 1.25rem; }
+.record__tabla tbody td:last-child  { padding-right: 1.25rem; }
+
+
+/* Hora */
+.record__time {
+  font-variant-numeric: tabular-nums;
+  color: var(--iw-text-subtle);
+  font-weight: var(--iw-weight-medium);
+  letter-spacing: 0.02em;
+}
+
+
+/* GPS */
+.record__gps {
+  font-size: var(--iw-font-size-sm);
+  color: var(--iw-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.record__no-gps {
+  color: var(--iw-text-muted);
+  font-style: italic;
+}
+
+
+/* Badges de acción */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2em 0.65em;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-bold);
+  line-height: 1;
+  white-space: nowrap;
+  letter-spacing: 0.02em;
+}
+
+/* Entrada — verde */
+.badge--entry {
+  background-color: var(--iw-success-light);
+  color: var(--iw-success-text);
+  border: 1px solid var(--iw-success-border);
+}
+
+/* Salida — rojo */
+.badge--exit {
+  background-color: var(--iw-danger-light);
+  color: var(--iw-danger);
+  border: 1px solid #fecaca;
+}
+
+/* Inicio Pausa */
+.badge--break-start {
+  background-color: var(--iw-primary-light);
+  color: var(--iw-primary);
+  border: 1px solid var(--iw-primary-border);
+}
+
+/* Fin Pausa — amarillo */
+.badge--break-end {
+  background-color: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+}
+
+
+/* Mode tags (Oficina / Teletrabajo) */
+
+.mode-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.2em 0.6em;
+  border-radius: var(--iw-radius-full);
+  font-size: var(--iw-font-size-xs);
+  font-weight: var(--iw-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Oficina — azul info */
+.mode-tag--office {
+  background-color: var(--iw-info-bg);
+  color: #1d4ed8;
+  border: 1px solid var(--iw-info-border);
+}
+
+/* Teletrabajo — índigo */
+.mode-tag--remote {
+  background-color: #eef2ff;
+  color: #3730a3;
+  border: 1px solid #c7d2fe;
+}
+
+
+/* Responsive */
+
+@media (max-width: 640px) {
+  .record__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .record__filter {
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.375rem;
+  }
+
+  #select-month {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .record__tabla thead th:first-child,
+  .record__tabla tbody td:first-child {
+    padding-left: 0.875rem;
+  }
+  .record__tabla thead th:last-child,
+  .record__tabla tbody td:last-child {
+    padding-right: 0.875rem;
+  }
+}
