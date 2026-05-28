@@ -1,2 +1,39 @@
+# Dependencias
 node_modules/
+*/node_modules/
+
+# Variables de entorno
 .env
+.env.*
+!.env.example
+
+# Build
+dist/
+build/
+.vite/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker volumes (datos locales)
+backend/db/
+
+# Temporales
+*.tmp
+*.temp
+/tmp/
+
+# Archivos de salida de tests
+coverage/
