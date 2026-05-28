@@ -323,3 +323,9 @@ h6 { font-size: 0.875rem; }
   margin-inline: auto;
   width: 100%;
 }
+
+@media (min-width: 1200px) {
+  .app-main {
+    height: 600px;
+  }
+} 
